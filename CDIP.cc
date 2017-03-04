@@ -4,7 +4,7 @@
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<dirent.h>
-#include<string>
+#include<cstring>
 
 #include"CDIP.h"
 
@@ -18,65 +18,70 @@ CDIP::~CDIP()
 
 }
 
-void CDIP::DirorFile(char* path_in)
+int CDIP::DirorFile(char* path_in)
 {
   struct stat pathBuf;
   if(0 != stat(path_in,&pathBuf))
   {
     cout << "This is not a directory or image!!" << endl;
+		return -1;
   }
   else
   {
     if(S_ISREG(pathBuf.st_mode))
 		{
       cout << "This is an image!" << endl;
+			return 0;
 		}
     if(S_ISDIR(pathBuf.st_mode))
 		{
       cout << "This is a directory!" << endl;
+			return 1;
 		}
   }
 }
 
-void CDIP::ShowImage(char* path_in)
+void CDIP::Show(char* path_in)
 {
-  struct stat pathBuf;
-  if(0 != stat(path_in,&pathBuf))
+	int fileordir;
+	
+	fileordir = DirorFile(path_in);
+	if(0 == fileordir)
+	{
+		ShowImage(path_in);
+	}
+	else if(1 == fileordir)
+	{
+		ShowImages(path_in);
+	}
+	else
+	{
+	}
+}
+
+void CDIP::ShowImage(char* imagePath_in)
+{
+	srcImage = imread(imagePath_in,1);
+  if(!srcImage.data)
   {
-    cout << "This is not a directory or image!" << endl;
+		cout << "There is no image!" << endl; 
   }
   else
   {
-    if(S_ISREG(pathBuf.st_mode))
-    {
-      cout << "This is an image!" << endl;
-      srcImage = imread(path_in,1);
-      if(!srcImage.data)
-      {
-        cout << "There is no image!" << endl; 
-      }
-      else
-      {
-					imshow("srcImage",srcImage);
-					waitKey(1000);
-      }
-    }
-    if(S_ISDIR(pathBuf.st_mode))
-    {
-      cout << "This is a directory!" << endl;
-      ShowImages(path_in);
-    }
+		imshow("srcImage",srcImage);
+		waitKey(1000);
   }
 }
 
-void CDIP::ShowImages(char* dirPath_in)
+void CDIP::ShowImages(char* imagesPath_in)
 {
   DIR* dp;
   struct dirent* dirp;
-  int size;
-	String fileName,filePath,fullPath;
+  int nameSize,pathSize;
+	char imagePath[PATHSIZE];
 
-  if(NULL == (dp = opendir(dirPath_in)))
+	pathSize = strlen(imagesPath_in);
+  if(NULL == (dp = opendir(imagesPath_in)))
   {
     cout << "There is no directory!" << endl;
   }
@@ -84,23 +89,22 @@ void CDIP::ShowImages(char* dirPath_in)
   {
     while(NULL != (dirp = readdir(dp)))
     {
-      size = strlen(dirp -> d_name);
-			if(0 == strcmp(dirp -> d_name + (size - 4),".jpg") || 0 == strcmp(dirp -> d_name + (size - 4),".bmp"))
+      nameSize = strlen(dirp -> d_name);
+			if(0 == strcmp(dirp -> d_name + (nameSize - 4),".jpg") || 0 == strcmp(dirp -> d_name + (nameSize - 4),".bmp"))
 			{
-				fileName = dirp -> d_name;
-				filePath = dirPath_in;
-				fullPath = filePath + "/" + fileName;
-				srcImage = imread(fullPath,1);
-				if(!srcImage.empty())
+				if(0 == strcmp(imagesPath_in + (pathSize - 1),"/"))
 				{
-					cvtColor(srcImage,grayImage,COLOR_BGR2GRAY);
-					imshow("src",srcImage);
-					imshow("gray",grayImage);
-					waitKey(1000);
-					srcImage.release();
-					grayImage.release();
+					memcpy(imagePath,imagesPath_in,pathSize);
+					memcpy(imagePath + pathSize,dirp -> d_name,nameSize + 1);
+				}
+				else
+				{
+					memcpy(imagePath,imagesPath_in,pathSize);
+					memset(imagePath + pathSize,'/',1);
+					memcpy(imagePath + pathSize + 1,dirp -> d_name,nameSize + 1);
 				}
 			}
+			ShowImage(imagePath);
     }
 		closedir(dp);
   }

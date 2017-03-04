@@ -1,6 +1,4 @@
 #include<opencv2/opencv.hpp>
-#include<vector>
-#include<algorithm>
 
 using namespace std;
 using namespace cv;
@@ -8,14 +6,17 @@ using namespace cv;
 #ifndef CDIP_H
 #define CDIP_H
 
+#define PATHSIZE	100
+
 class CDIP
 {
 public:
   CDIP();
   ~CDIP();
-  void DirorFile(char* filePath_in);
-  void ShowImage(char* filePath_in);
-  void ShowImages(char* dirPath_in);
+  int DirorFile(char* path_in);
+	void Show(char* path_in);
+  void ShowImage(char* imagePath_in);
+  void ShowImages(char* imagesPath_in);
 private:
 
 public:

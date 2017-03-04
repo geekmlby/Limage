@@ -8,10 +8,9 @@ using namespace std;
 int main(int argc,char* argv[])
 {
   CDIP DIP;
-  char path[100];
-  cout << "Please input path:" << endl;   //path = "/home/wangli/Pic/bike_001.bmp"
+  char path[PATHSIZE];
+  cout << "Please input path:" << endl;   
   cin.get(path,100);
-	//DIP.DirorFile(path);
-  DIP.ShowImage(path);
+  DIP.Show(path);
   return 0;
 }
