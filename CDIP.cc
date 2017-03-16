@@ -1,143 +1,105 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<iostream>
-#include<sys/types.h>
-#include<sys/stat.h>
-#include<dirent.h>
-#include<cstring>
+#include<exception>
 
 #include"CDIP.h"
 
 CDIP::CDIP()
 {
-
+	pImg = NULL;
 }
 
 CDIP::~CDIP()
 {
-
+	cvReleaseImage(&pImg);
 }
 
 void CDIP::ReadImage(char* imagePath_in)
-{
-	IplImage* pImg;
-  if ((pImg = cvLoadImage(imagePath_in, 1)) != 0)  
-  {  
-  	cvNamedWindow("Image", 1);  
-  	cvShowImage("Image", pImg);  
-  	cvWaitKey(5000);  
-  	cvDestroyWindow("Image");  
-  	cvReleaseImage(&pImg);  
-  } 
+{	
+	pImg = cvLoadImage(imagePath_in,1);
 }
 
-int CDIP::DirorFile(char* path_in)
+int CDIP::GetHeight()
 {
-  struct stat pathBuf;
-  if(0 != stat(path_in,&pathBuf))
-  {
-    cout << "This is not a directory or image!!" << endl;
-		return -1;
-  }
-  else
-  {
-    if(S_ISREG(pathBuf.st_mode))
-		{
-      cout << "This is an image!" << endl;
-			return 0;
-		}
-    if(S_ISDIR(pathBuf.st_mode))
-		{
-      cout << "This is a directory!" << endl;
-			return 1;
-		}
-  }
+	return pImg -> height;
 }
 
-void CDIP::Show(char* path_in)
+int CDIP::GetWidth()
 {
-	int fileordir;
-	
-	fileordir = DirorFile(path_in);
-	if(0 == fileordir)
+	return pImg -> width;
+}
+
+void CDIP::ShowImage()
+{
+	if(0 != pImg)
 	{
-		ShowImage(path_in);
+		cvNamedWindow("Image",1);
+		cvShowImage("Image",pImg);
+		cvWaitKey(1000);
+		cvDestroyWindow("Image");
 	}
-	else if(1 == fileordir)
-	{
-		ShowImages(path_in);
-	}
-	else
-	{
-	}
-}
-
-void CDIP::ShowImage(char* imagePath_in)
-{
-	srcImage = imread(imagePath_in,1);
-  if(!srcImage.data)
-  {
-		cout << "There is no image!" << endl; 
-  }
-  else
-  {
-		imshow("srcImage",srcImage);
-		cout << imagePath_in << endl;
-		waitKey(1000);
-  }
-}
-
-void CDIP::ShowImages(char* imagesPath_in)
-{
-  DIR* dp;
-  struct dirent* dirp;
-  int nameSize,pathSize;
-	char imagePath[PATHSIZE];
-
-	pathSize = strlen(imagesPath_in);
-  if(NULL == (dp = opendir(imagesPath_in)))
-  {
-    cout << "There is no directory!" << endl;
-  }
-  else
-  {
-    while(NULL != (dirp = readdir(dp)))
-    {
-      nameSize = strlen(dirp -> d_name);
-			if(0 == strcmp(dirp -> d_name,".") || 0 == strcmp(dirp -> d_name,".."))
-			{
-				continue;
-			}
-			else if(0 == strcmp(dirp -> d_name + (nameSize - 4),".jpg") || 0 == strcmp(dirp -> d_name + (nameSize - 4),".bmp"))
-			{
-				if(0 == strcmp(imagesPath_in + (pathSize - 1),"/"))
-				{
-					memcpy(imagePath,imagesPath_in,pathSize);
-					memcpy(imagePath + pathSize,dirp -> d_name,nameSize + 1);
-				}
-				else
-				{
-					memcpy(imagePath,imagesPath_in,pathSize);
-					memset(imagePath + pathSize,'/',1);
-					memcpy(imagePath + pathSize + 1,dirp -> d_name,nameSize + 1);
-				}
-			}
-			ShowImage(imagePath);
-    }
-		closedir(dp);
-  }
 }
 
 void CDIP::GetImageRGB()
 {
-	//IplImage src(srcImage);
-	cout << "This image's channels is: " << srcImage.channels() << endl;
+	IplImage* blueImg;
+	IplImage* greenImg;
+	IplImage* redImg;
+	int h,w;
+	
+	h = GetHeight();
+	w = GetWidth();
+	blueComp = new uchar[MAXHEIGHT * MAXWIDTH];
+	greenComp = new uchar[MAXHEIGHT * MAXWIDTH];
+	redComp = new uchar[MAXHEIGHT * MAXWIDTH];
+
+	blueImg = cvCreateImage(cvGetSize(pImg),8,1);
+	greenImg = cvCreateImage(cvGetSize(pImg),8,1);
+	redImg = cvCreateImage(cvGetSize(pImg),8,1);
+	
+	for(int i = 0;i < h;i++)
+	{
+		for(int j = 0;j < w;j++)
+		{
+			blueComp[i * blueImg -> widthStep + j] = ((uchar *)(pImg -> imageData + i * pImg -> widthStep))[j * pImg -> nChannels + 0];
+			greenComp[i * greenImg -> widthStep + j] = ((uchar *)(pImg -> imageData + i * pImg -> widthStep))[j * pImg -> nChannels + 1];
+			redComp[i * redImg -> widthStep + j] = ((uchar *)(pImg -> imageData + i * pImg -> widthStep))[j * pImg -> nChannels + 2];
+		}
+	}
+
+	blueImg -> imageData = (char*)blueComp;
+	cvNamedWindow("Blue",1);
+	cvShowImage("Blue",blueImg);
+
+	greenImg -> imageData = (char*)greenComp;
+	cvNamedWindow("Green",1);
+	cvShowImage("Green",greenImg);
+
+	redImg -> imageData = (char*)redComp;
+	cvNamedWindow("Red",1);
+	cvShowImage("Red",redImg);
+
+	cvWaitKey(0);
+
+	cvDestroyWindow("Blue");
+	cvReleaseImage(&blueImg);
+
+	cvDestroyWindow("Green");
+	cvReleaseImage(&greenImg);
+
+	cvDestroyWindow("Red");
+	cvReleaseImage(&redImg);
+
+	delete blueComp;
+	delete greenComp;
+	delete redComp;
+	blueComp = NULL;
+	greenComp = NULL;
+	redComp = NULL;
 }
 
-void CDIP::GetImageYUV420()
-{
 
-}
 
 
 
