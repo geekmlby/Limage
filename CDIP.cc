@@ -1,43 +1,50 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<iostream>
-#include<exception>
 
 #include"CDIP.h"
 
 CDIP::CDIP()
 {
-	pImg = NULL;
+	srcImg = NULL;
+	blueComp = NULL;
+	greenComp = NULL;
+	redComp = NULL;
+	grayImg = NULL;
 }
 
 CDIP::~CDIP()
 {
-	cvReleaseImage(&pImg);
+	cvReleaseImage(&grayImg);
+	delete blueComp;
+	delete greenComp;
+	delete redComp;
+	cvReleaseImage(&srcImg);
 }
 
 void CDIP::ReadImage(char* imagePath_in)
 {	
-	pImg = cvLoadImage(imagePath_in,1);
+	srcImg = cvLoadImage(imagePath_in,1);
 }
 
 int CDIP::GetHeight()
 {
-	return pImg -> height;
+	return srcImg -> height;
 }
 
 int CDIP::GetWidth()
 {
-	return pImg -> width;
+	return srcImg -> width;
 }
 
 void CDIP::ShowImage()
 {
-	if(0 != pImg)
+	if(0 != srcImg)
 	{
-		cvNamedWindow("Image",1);
-		cvShowImage("Image",pImg);
-		cvWaitKey(1000);
-		cvDestroyWindow("Image");
+		cvNamedWindow("srcImage",1);
+		cvShowImage("srcImage",srcImg);
+		cvWaitKey(0);
+		cvDestroyWindow("srcImage");	
 	}
 }
 
@@ -46,57 +53,77 @@ void CDIP::GetImageRGB()
 	IplImage* blueImg;
 	IplImage* greenImg;
 	IplImage* redImg;
-	int h,w;
+	int height,width;
 	
-	h = GetHeight();
-	w = GetWidth();
+	height = GetHeight();
+	width = GetWidth();
 	blueComp = new uchar[MAXHEIGHT * MAXWIDTH];
 	greenComp = new uchar[MAXHEIGHT * MAXWIDTH];
 	redComp = new uchar[MAXHEIGHT * MAXWIDTH];
 
-	blueImg = cvCreateImage(cvGetSize(pImg),8,1);
-	greenImg = cvCreateImage(cvGetSize(pImg),8,1);
-	redImg = cvCreateImage(cvGetSize(pImg),8,1);
+	blueImg = cvCreateImage(cvGetSize(srcImg),8,1);
+	greenImg = cvCreateImage(cvGetSize(srcImg),8,1);
+	redImg = cvCreateImage(cvGetSize(srcImg),8,1);
 	
-	for(int i = 0;i < h;i++)
+	for(int i = 0;i < height;i++)
 	{
-		for(int j = 0;j < w;j++)
+		for(int j = 0;j < width;j++)
 		{
-			blueComp[i * blueImg -> widthStep + j] = ((uchar *)(pImg -> imageData + i * pImg -> widthStep))[j * pImg -> nChannels + 0];
-			greenComp[i * greenImg -> widthStep + j] = ((uchar *)(pImg -> imageData + i * pImg -> widthStep))[j * pImg -> nChannels + 1];
-			redComp[i * redImg -> widthStep + j] = ((uchar *)(pImg -> imageData + i * pImg -> widthStep))[j * pImg -> nChannels + 2];
+			blueComp[i * blueImg -> widthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 0];
+			greenComp[i * greenImg -> widthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 1];
+			redComp[i * redImg -> widthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 2];
 		}
 	}
 
 	blueImg -> imageData = (char*)blueComp;
-	cvNamedWindow("Blue",1);
-	cvShowImage("Blue",blueImg);
+	cvNamedWindow("blueImage",1);
+	cvShowImage("blueImage",blueImg);
 
 	greenImg -> imageData = (char*)greenComp;
-	cvNamedWindow("Green",1);
-	cvShowImage("Green",greenImg);
+	cvNamedWindow("greenImage",1);
+	cvShowImage("greenImage",greenImg);
 
 	redImg -> imageData = (char*)redComp;
-	cvNamedWindow("Red",1);
-	cvShowImage("Red",redImg);
+	cvNamedWindow("redImage",1);
+	cvShowImage("redImage",redImg);
 
 	cvWaitKey(0);
 
-	cvDestroyWindow("Blue");
+	cvDestroyWindow("blueImage");
 	cvReleaseImage(&blueImg);
 
-	cvDestroyWindow("Green");
+	cvDestroyWindow("greenImage");
 	cvReleaseImage(&greenImg);
 
-	cvDestroyWindow("Red");
+	cvDestroyWindow("redImage");
 	cvReleaseImage(&redImg);
+}
 
-	delete blueComp;
-	delete greenComp;
-	delete redComp;
-	blueComp = NULL;
-	greenComp = NULL;
-	redComp = NULL;
+void CDIP::GetGrayImage()
+{
+	int height,width;
+
+	height = GetHeight();
+	width = GetWidth();
+
+	grayImg = cvCreateImage(cvGetSize(srcImg),8,1);
+	for(int i = 0;i < height;i++)
+	{
+		for(int j = 0;j < width;j++)
+		{
+			*(grayImg -> imageData + i * grayImg -> widthStep + j) = *(redComp + i * grayImg -> widthStep + j) * 0.299 +
+																															 *(greenComp + i * grayImg -> widthStep + j) * 0.587 +
+																															 *(blueComp + i * grayImg -> widthStep + j) * 0.114;
+ 		}
+	}
+	cvNamedWindow("grayImage",1);
+	cvShowImage("grayImage",grayImg);
+	cvWaitKey(0);
+	cvDestroyWindow("grayImage");
+
+	cout << "The information of grayImage is:" << endl;
+	cout << "The channels is:" << grayImg -> nChannels << endl;
+	cout << "The depth is:" << grayImg -> depth << endl;
 }
 
 

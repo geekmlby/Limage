@@ -12,7 +12,8 @@ int main(int argc,char* argv[])
   /*cout << "Please input path:" << endl;   
   cin.get(path,100);*/
 	DIP.ReadImage(path);
-  //DIP.ShowImage();
+  DIP.ShowImage();
 	DIP.GetImageRGB();
+	DIP.GetGrayImage();
   return 0;
 }

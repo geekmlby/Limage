@@ -20,12 +20,13 @@ public:
 	int GetWidth();
 	void ShowImage();
 	void GetImageRGB();
+	void GetGrayImage();
 private:
 
 public:
-
+	IplImage* grayImg;
 private:
-	IplImage* pImg;
+	IplImage* srcImg;
 	uchar* blueComp;
 	uchar* greenComp;
 	uchar* redComp;
