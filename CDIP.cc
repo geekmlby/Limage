@@ -121,12 +121,34 @@ void CDIP::GetGrayImage()
 	cvWaitKey(0);
 	cvDestroyWindow("grayImage");
 
+	WriteTxt_char("/home/wangli/grayImage.txt",
+								 grayImg -> imageData,
+								 grayImg -> height,
+								 grayImg -> width);
+
 	cout << "The information of grayImage is:" << endl;
 	cout << "The channels is:" << grayImg -> nChannels << endl;
 	cout << "The depth is:" << grayImg -> depth << endl;
 }
 
-
+void CDIP::WriteTxt_char(const char* pcName,
+										  	 const char* pcMatrix,
+												 int h,
+												 int w)
+{
+	int i,j;
+	FILE *fp;
+	fp = fopen(pcName,"wb");
+	for (i = 0;i < h;i++)
+	{
+		for (j = 0;j < w;j++)
+		{
+			fprintf(fp,"%d ",pcMatrix[i  *w + j]);
+		}
+		fprintf(fp,"\n");
+	}
+	fclose(fp);
+}
 
 
 

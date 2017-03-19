@@ -21,6 +21,10 @@ public:
 	void ShowImage();
 	void GetImageRGB();
 	void GetGrayImage();
+	void WriteTxt_char(const char* pcName,
+										 const char* pucMatrix,
+										 int h,
+										 int w);
 private:
 
 public:
