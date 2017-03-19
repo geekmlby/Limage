@@ -121,10 +121,21 @@ void CDIP::GetGrayImage()
 	cvWaitKey(0);
 	cvDestroyWindow("grayImage");
 
-	WriteTxt_char("/home/wangli/grayImage.txt",
+	/*WriteTxt_char("/home/wangli/grayImage.txt",
+								grayImg -> imageData,
+								grayImg -> height,
+								grayImg -> width);*/
+	WriteTxt<char>("/home/wangli/Limage/grayImage.txt",
 								 grayImg -> imageData,
 								 grayImg -> height,
 								 grayImg -> width);
+	//GetMax(5.8,13.6);
+
+	/*int testArray[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};   //Test program,test the template whether can be use.
+	WriteTxt<int>("/home/wangli/testArray2.txt",
+								testArray,
+								2,
+								8);*/
 
 	cout << "The information of grayImage is:" << endl;
 	cout << "The channels is:" << grayImg -> nChannels << endl;
