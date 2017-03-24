@@ -7,34 +7,30 @@
 CDIP::CDIP()
 {
 	srcImg = NULL;
-	blueComp = NULL;
-	greenComp = NULL;
-	redComp = NULL;
-	grayImg = NULL;
+	blueMat = NULL;
+	greenMat = NULL;
+	redMat = NULL;
+	grayMat = NULL;
 }
 
 CDIP::~CDIP()
 {
-	cvReleaseImage(&grayImg);
-	delete blueComp;
-	delete greenComp;
-	delete redComp;
+	delete grayMat;
+	delete blueMat;
+	delete greenMat;
+	delete redMat;
+	grayMat = NULL;
+	blueMat = NULL;
+	greenMat = NULL;
+	redMat = NULL;
 	cvReleaseImage(&srcImg);
 }
 
-void CDIP::ReadImage(char* imagePath_in)
+void CDIP::ReadImage(char* imagePath)
 {	
-	srcImg = cvLoadImage(imagePath_in,1);
-}
-
-int CDIP::GetHeight()
-{
-	return srcImg -> height;
-}
-
-int CDIP::GetWidth()
-{
-	return srcImg -> width;
+	srcImg = cvLoadImage(imagePath,1);
+	imgHeight = srcImg -> height;
+	imgWidth = srcImg -> width;
 }
 
 void CDIP::ShowImage()
@@ -46,119 +42,63 @@ void CDIP::ShowImage()
 		cvWaitKey(0);
 		cvDestroyWindow("srcImage");	
 	}
+	else
+	{
+		cout << "Please read an image first!" << endl;
+	}
+}
+
+void CDIP::ShowImage(const char* windowName,
+								 		 uchar* imgMat,
+								 		 int imgHeight,
+								 		 int imgWidth,
+										 int imgDepth,
+								 		 int imgChannels)
+{
+	IplImage* tmpImg;
+	tmpImg = cvCreateImage(cvSize(imgWidth,imgHeight),imgDepth,imgChannels);
+	tmpImg -> imageData = (char*)imgMat;
+	cvNamedWindow(windowName,1);
+	cvShowImage(windowName,tmpImg);
+	cvWaitKey(0);
+	cvDestroyWindow(windowName);
+	cvReleaseImage(&tmpImg);
 }
 
 void CDIP::GetImageRGB()
 {
-	IplImage* blueImg;
-	IplImage* greenImg;
-	IplImage* redImg;
-	int height,width;
-	
-	height = GetHeight();
-	width = GetWidth();
-	blueComp = new uchar[MAXHEIGHT * MAXWIDTH];
-	greenComp = new uchar[MAXHEIGHT * MAXWIDTH];
-	redComp = new uchar[MAXHEIGHT * MAXWIDTH];
+	int tmpWidthStep;
 
-	blueImg = cvCreateImage(cvGetSize(srcImg),8,1);
-	greenImg = cvCreateImage(cvGetSize(srcImg),8,1);
-	redImg = cvCreateImage(cvGetSize(srcImg),8,1);
-	
-	for(int i = 0;i < height;i++)
+	tmpWidthStep = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));
+	blueMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	greenMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	redMat = new uchar[MAXHEIGHT * MAXWIDTH];	
+	for(int i = 0;i < imgHeight;i++)
 	{
-		for(int j = 0;j < width;j++)
+		for(int j = 0;j < imgWidth;j++)
 		{
-			blueComp[i * blueImg -> widthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 0];
-			greenComp[i * greenImg -> widthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 1];
-			redComp[i * redImg -> widthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 2];
+			blueMat[i * tmpWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 0];
+			greenMat[i * tmpWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 1];
+			redMat[i * tmpWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 2];
 		}
 	}
-
-	blueImg -> imageData = (char*)blueComp;
-	cvNamedWindow("blueImage",1);
-	cvShowImage("blueImage",blueImg);
-
-	greenImg -> imageData = (char*)greenComp;
-	cvNamedWindow("greenImage",1);
-	cvShowImage("greenImage",greenImg);
-
-	redImg -> imageData = (char*)redComp;
-	cvNamedWindow("redImage",1);
-	cvShowImage("redImage",redImg);
-
-	cvWaitKey(0);
-
-	cvDestroyWindow("blueImage");
-	cvReleaseImage(&blueImg);
-
-	cvDestroyWindow("greenImage");
-	cvReleaseImage(&greenImg);
-
-	cvDestroyWindow("redImage");
-	cvReleaseImage(&redImg);
 }
 
 void CDIP::GetGrayImage()
-{
-	int height,width;
+{	
+	int tmpWidthStep;
 
-	height = GetHeight();
-	width = GetWidth();
-
-	grayImg = cvCreateImage(cvGetSize(srcImg),8,1);
-	for(int i = 0;i < height;i++)
+	tmpWidthStep = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));	
+	grayMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	for(int i = 0;i < imgHeight;i++)
 	{
-		for(int j = 0;j < width;j++)
+		for(int j = 0;j < imgWidth;j++)
 		{
-			*(grayImg -> imageData + i * grayImg -> widthStep + j) = *(redComp + i * grayImg -> widthStep + j) * 0.299 +
-																															 *(greenComp + i * grayImg -> widthStep + j) * 0.587 +
-																															 *(blueComp + i * grayImg -> widthStep + j) * 0.114;
+			grayMat[i * tmpWidthStep + j] = redMat[i * tmpWidthStep + j] * 0.2989 +
+																			greenMat[i * tmpWidthStep + j] * 0.5866 +
+																			blueMat[i * tmpWidthStep + j] * 0.1145;
  		}
 	}
-	cvNamedWindow("grayImage",1);
-	cvShowImage("grayImage",grayImg);
-	cvWaitKey(0);
-	cvDestroyWindow("grayImage");
-
-	/*WriteTxt_char("/home/wangli/grayImage.txt",
-								grayImg -> imageData,
-								grayImg -> height,
-								grayImg -> width);*/
-	WriteTxt<char>("/home/wangli/Limage/grayImage.txt",
-								 grayImg -> imageData,
-								 grayImg -> height,
-								 grayImg -> width);
-	//GetMax(5.8,13.6);
-
-	/*int testArray[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};   //Test program,test the template whether can be use.
-	WriteTxt<int>("/home/wangli/testArray2.txt",
-								testArray,
-								2,
-								8);*/
-
-	cout << "The information of grayImage is:" << endl;
-	cout << "The channels is:" << grayImg -> nChannels << endl;
-	cout << "The depth is:" << grayImg -> depth << endl;
-}
-
-void CDIP::WriteTxt_char(const char* pcName,
-										  	 const char* pcMatrix,
-												 int h,
-												 int w)
-{
-	int i,j;
-	FILE *fp;
-	fp = fopen(pcName,"wb");
-	for (i = 0;i < h;i++)
-	{
-		for (j = 0;j < w;j++)
-		{
-			fprintf(fp,"%d ",pcMatrix[i  *w + j]);
-		}
-		fprintf(fp,"\n");
-	}
-	fclose(fp);
 }
 
 
