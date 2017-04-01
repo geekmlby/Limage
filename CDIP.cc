@@ -50,13 +50,13 @@ void CDIP::ShowImage()
 
 void CDIP::ShowImage(const char* windowName,
 								 		 uchar* imgMat,
-								 		 int imgHeight,
-								 		 int imgWidth,
-										 int imgDepth,
-								 		 int imgChannels)
+								 		 int h,
+								 		 int w,
+										 int depth,
+								 		 int channels)
 {
 	IplImage* tmpImg;
-	tmpImg = cvCreateImage(cvSize(imgWidth,imgHeight),imgDepth,imgChannels);
+	tmpImg = cvCreateImage(cvSize(w,h),depth,channels);
 	tmpImg -> imageData = (char*)imgMat;
 	cvNamedWindow(windowName,1);
 	cvShowImage(windowName,tmpImg);

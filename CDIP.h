@@ -19,10 +19,10 @@ public:
 	void ShowImage();
 	void ShowImage(const char* windowName,
 								 uchar* imgMat,
-								 int imgHeight,
-								 int imgWidth,
-								 int imgDepth = 8,
-								 int imgChannels = 1);
+								 int h,
+								 int w,
+								 int depth = 8,
+								 int channels = 1);
 	void GetImageRGB();
 	void GetGrayImage();
 
@@ -54,8 +54,9 @@ public:
 	uchar* greenMat;
 	uchar* redMat;
 	uchar* grayMat;
-private:
 	IplImage* srcImg;
+private:
+
 };
 
 #endif

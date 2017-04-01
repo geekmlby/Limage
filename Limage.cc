@@ -14,6 +14,21 @@ int main(int argc,char* argv[])
   //cin.get(path,100);
 	edgeDete.ReadImage(path);
 	edgeDete.ShowImage();
+	edgeDete.GetImageRGB();
+	/*edgeDete.ShowImage("RedMat",
+										 edgeDete.redMat,
+										 edgeDete.imgHeight,
+										 edgeDete.imgWidth);*/
+	edgeDete.GetGrayImage();
+	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/grayImg_Linux.txt",
+													 edgeDete.grayMat,
+													 edgeDete.imgHeight,
+													 edgeDete.imgWidth);
+	edgeDete.Sobel();
+	edgeDete.ShowImage("EdgeImage",
+										 edgeDete.edgeMat,
+										 edgeDete.imgHeight,
+										 edgeDete.imgWidth);
 	
   return 0;
 }
