@@ -15,31 +15,31 @@ class CDIP
 public:
   CDIP();
   ~CDIP();
-	void ReadImage(char* imagePath);
+	void ReadImage(char* path);
 	void ShowImage();
 	void ShowImage(const char* windowName,
-								 uchar* imgMat,
-								 int h,
-								 int w,
+								 uchar* matrix,
+								 int height,
+								 int width,
 								 int depth = 8,
 								 int channels = 1);
 	void GetImageRGB();
 	void GetGrayImage();
 
 	template<class type>
-	void WriteTxt(const char* pcName,
-								type * pMatrix,
-								int h,
-								int w)
+	void WriteTxt(const char* txtName,
+								type * matrix,
+								int height,
+								int width)
 	{
 		int i,j;
 		FILE *fp;
-		fp = fopen(pcName,"wb");
-		for (i = 0;i < h;i++)
+		fp = fopen(txtName,"wb");
+		for (i = 0;i < height;i++)
 		{
-			for (j = 0;j < w;j++)
+			for (j = 0;j < width;j++)
 			{
-				fprintf(fp,"%d ",pMatrix[i * w + j]);   //Because of "%d ",the template is only useful to "int","char" and "uchar".
+				fprintf(fp,"%4d ",matrix[i * width + j]);   //Because of "%d ",the template is only useful to "int","char" and "uchar".
 			}
 			fprintf(fp,"\n");
 		}
@@ -50,10 +50,11 @@ private:
 public:
 	int imgHeight;
 	int imgWidth;
-	uchar* blueMat;
-	uchar* greenMat;
-	uchar* redMat;
-	uchar* grayMat;
+	uchar* imgBMat;
+	uchar* imgGMat;
+	uchar* imgRMat;
+	uchar* imgGrayMat;
+	int imgGrayWidthStep;
 	IplImage* srcImg;
 private:
 

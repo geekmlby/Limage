@@ -7,30 +7,31 @@
 CDIP::CDIP()
 {
 	srcImg = NULL;
-	blueMat = NULL;
-	greenMat = NULL;
-	redMat = NULL;
-	grayMat = NULL;
+	imgBMat = NULL;
+	imgGMat = NULL;
+	imgRMat = NULL;
+	imgGrayMat = NULL;
 }
 
 CDIP::~CDIP()
 {
-	delete grayMat;
-	delete blueMat;
-	delete greenMat;
-	delete redMat;
-	grayMat = NULL;
-	blueMat = NULL;
-	greenMat = NULL;
-	redMat = NULL;
+	delete imgGrayMat;
+	delete imgBMat;
+	delete imgGMat;
+	delete imgRMat;
+	imgGrayMat = NULL;
+	imgBMat = NULL;
+	imgGMat = NULL;
+	imgRMat = NULL;
 	cvReleaseImage(&srcImg);
 }
 
-void CDIP::ReadImage(char* imagePath)
+void CDIP::ReadImage(char* path)
 {	
-	srcImg = cvLoadImage(imagePath,1);
+	srcImg = cvLoadImage(path,1);
 	imgHeight = srcImg -> height;
 	imgWidth = srcImg -> width;
+	imgGrayWidthStep = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));
 }
 
 void CDIP::ShowImage()
@@ -49,15 +50,15 @@ void CDIP::ShowImage()
 }
 
 void CDIP::ShowImage(const char* windowName,
-								 		 uchar* imgMat,
-								 		 int h,
-								 		 int w,
+								 		 uchar* matrix,
+								 		 int height,
+								 		 int width,
 										 int depth,
 								 		 int channels)
 {
 	IplImage* tmpImg;
-	tmpImg = cvCreateImage(cvSize(w,h),depth,channels);
-	tmpImg -> imageData = (char*)imgMat;
+	tmpImg = cvCreateImage(cvSize(width,height),depth,channels);
+	tmpImg -> imageData = (char*)matrix;
 	cvNamedWindow(windowName,1);
 	cvShowImage(windowName,tmpImg);
 	cvWaitKey(0);
@@ -67,41 +68,33 @@ void CDIP::ShowImage(const char* windowName,
 
 void CDIP::GetImageRGB()
 {
-	int tmpWidthStep;
-
-	tmpWidthStep = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));
-	blueMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	greenMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	redMat = new uchar[MAXHEIGHT * MAXWIDTH];	
+	imgBMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	imgGMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	imgRMat = new uchar[MAXHEIGHT * MAXWIDTH];	
 	for(int i = 0;i < imgHeight;i++)
 	{
 		for(int j = 0;j < imgWidth;j++)
 		{
-			blueMat[i * tmpWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 0];
-			greenMat[i * tmpWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 1];
-			redMat[i * tmpWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 2];
+			imgBMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 0];
+			imgGMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 1];
+			imgRMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 2];
 		}
 	}
 }
 
 void CDIP::GetGrayImage()
 {	
-	int tmpWidthStep;
-
-	tmpWidthStep = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));	
-	grayMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	imgGrayMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	for(int i = 0;i < imgHeight;i++)
 	{
 		for(int j = 0;j < imgWidth;j++)
 		{
-			grayMat[i * tmpWidthStep + j] = redMat[i * tmpWidthStep + j] * 0.2989 +
-																			greenMat[i * tmpWidthStep + j] * 0.5866 +
-																			blueMat[i * tmpWidthStep + j] * 0.1145;
+			imgGrayMat[i * imgGrayWidthStep + j] = imgRMat[i * imgGrayWidthStep + j] * 0.2989 +
+																						 imgGMat[i * imgGrayWidthStep + j] * 0.5866 +
+																						 imgBMat[i * imgGrayWidthStep + j] * 0.1145;
  		}
 	}
 }
-
-
 
 
 
