@@ -7,8 +7,8 @@ using namespace cv;
 #define CDIP_H
 
 #define PATHSIZE		100
-#define MAXHEIGHT		1080
-#define MAXWIDTH		1920
+#define MAXHEIGHT		2000
+#define MAXWIDTH		2000
 
 class CDIP
 {
@@ -55,9 +55,8 @@ public:
 	uchar* imgRMat;
 	uchar* imgGrayMat;
 	int imgGrayWidthStep;
-	IplImage* srcImg;
 private:
-
+	IplImage* srcImg;
 };
 
 #endif

@@ -8,12 +8,10 @@ class CEdgeDete:public CDIP
 public:
 	CEdgeDete();
 	~CEdgeDete();
-	void Sobel();
+	void SobelEdgeDete();
 private:
 
 public:
-	int Gx;
-	int Gy;
 	uchar* edgeMat;
 private:
 
