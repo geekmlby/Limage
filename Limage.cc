@@ -15,6 +15,18 @@ int main(int argc,char* argv[])
 	edgeDete.ReadImage(path);
 	edgeDete.ShowImage();
 	edgeDete.GetImageRGB();
+	/*edgeDete.WriteTxt<uchar>("/home/wangli/Limage/RedComp.txt",
+													 edgeDete.imgRMat,
+													 edgeDete.imgHeight,
+													 edgeDete.imgGrayWidthStep);
+	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/GreenComp.txt",
+													 edgeDete.imgGMat,
+													 edgeDete.imgHeight,
+													 edgeDete.imgGrayWidthStep);
+	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/BlueComp.txt",
+													 edgeDete.imgBMat,
+													 edgeDete.imgHeight,
+													 edgeDete.imgGrayWidthStep);*/
 	edgeDete.GetGrayImage();
 	edgeDete.SobelEdgeDete();
 	/*edgeDete.ShowImage("EdgeImage",

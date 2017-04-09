@@ -11,8 +11,6 @@ public:
 	void SobelEdgeDete();
 private:
 	void FlipMat(uchar* matrix,
-							 int height,
-							 int width,
 							 int eqH,
 							 int eqW);
 public:
