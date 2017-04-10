@@ -28,6 +28,10 @@ int main(int argc,char* argv[])
 													 edgeDete.imgHeight,
 													 edgeDete.imgGrayWidthStep);*/
 	edgeDete.GetGrayImage();
+	edgeDete.ShowImage("GrayImg",
+										 edgeDete.imgGrayMat,
+										 edgeDete.imgHeight,
+										 edgeDete.imgWidth);
 	edgeDete.SobelEdgeDete();
 	/*edgeDete.ShowImage("EdgeImage",
 										 edgeDete.edgeMat,

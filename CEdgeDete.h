@@ -10,13 +10,22 @@ public:
 	~CEdgeDete();
 	void SobelEdgeDete();
 private:
-	void FlipMat(uchar* matrix,
+	void FlipMat(uchar* matrix_out,
+							 uchar* matrix,
+							 int height,
+							 int width,
 							 int eqH,
 							 int eqW);
+	/*void CalConv(uchar* matrix_out,   //Calculate convolution
+							 uchar* matrix,
+							 int* operMat_Gx,
+							 int* operMat_Gy,
+							 int height,
+							 int width,
+							 int operH,
+							 int operW);*/   
 public:
 	uchar* edgeMat;
-	uchar* flipMat_UpDown;
-	uchar* flipMat_LeftRight;
 private:
 
 };
