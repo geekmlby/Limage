@@ -77,7 +77,7 @@ void CDIP::GetImageRGB()
 	imgRMat = new uchar[MAXHEIGHT * MAXWIDTH];	
 	for(int i = 0;i < imgHeight;i++)
 	{
-		for(int j = 0;j < imgWidth;j++)
+		for(int j = 0;j < imgGrayWidthStep;j++)
 		{
 			imgBMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 0];
 			imgGMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 1];
@@ -88,14 +88,18 @@ void CDIP::GetImageRGB()
 
 void CDIP::GetGrayImage()
 {	
+	double grayValueSum;
+	int pos;
 	imgGrayMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	double r,g,b;
 	for(int i = 0;i < imgHeight;i++)
 	{
-		for(int j = 0;j < imgWidth;j++)
+		for(int j = 0;j < imgGrayWidthStep;j++)
 		{
-			imgGrayMat[i * imgGrayWidthStep + j] = imgRMat[i * imgGrayWidthStep + j] * 0.2989 +
-																						 imgGMat[i * imgGrayWidthStep + j] * 0.5866 +
-																						 imgBMat[i * imgGrayWidthStep + j] * 0.1145;
+			grayValueSum = 2989 * imgRMat[i * imgGrayWidthStep + j] +
+										 5866 * imgGMat[i * imgGrayWidthStep + j] +
+										 1145 * imgBMat[i * imgGrayWidthStep + j];
+			imgGrayMat[i * imgGrayWidthStep + j] = (int)(grayValueSum / 10000);
  		}
 	}
 }

@@ -15,15 +15,7 @@ private:
 							 int height,
 							 int width,
 							 int eqH,
-							 int eqW);
-	/*void CalConv(uchar* matrix_out,   //Calculate convolution
-							 uchar* matrix,
-							 int* operMat_Gx,
-							 int* operMat_Gy,
-							 int height,
-							 int width,
-							 int operH,
-							 int operW);*/   
+							 int eqW);  
 public:
 	uchar* edgeMat;
 private:

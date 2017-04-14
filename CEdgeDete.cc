@@ -101,20 +101,12 @@ void CEdgeDete::SobelEdgeDete()
 	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	convMat = new uchar[MAXHEIGHT * MAXWIDTH];
 
-	FlipMat(flippedMat,
+	/*FlipMat(flippedMat,
 					imgGrayMat,
 					imgHeight,
 					imgGrayWidthStep,
 				  1,
-					1);
-	/*CalConv(convMat,
-					flippedMat,
-					sobel_Gx,
-					sobel_Gy,
-					imgHeight,
-					imgGrayWidthStep,
-					3,
-					3);*/
+					1);*/
 }
 
 

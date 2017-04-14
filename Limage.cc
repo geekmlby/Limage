@@ -9,13 +9,13 @@ using namespace std;
 int main(int argc,char* argv[])
 {
   CEdgeDete edgeDete;
-  char path[PATHSIZE] = "/home/wangli/Limage/lena.jpg";
+  char path[PATHSIZE] = "/home/wangli/Limage/img/testArray.bmp";
   //cout << "Please input path:" << endl;   
   //cin.get(path,100);
 	edgeDete.ReadImage(path);
 	edgeDete.ShowImage();
 	edgeDete.GetImageRGB();
-	/*edgeDete.WriteTxt<uchar>("/home/wangli/Limage/RedComp.txt",
+	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/RedComp.txt",
 													 edgeDete.imgRMat,
 													 edgeDete.imgHeight,
 													 edgeDete.imgGrayWidthStep);
@@ -26,12 +26,12 @@ int main(int argc,char* argv[])
 	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/BlueComp.txt",
 													 edgeDete.imgBMat,
 													 edgeDete.imgHeight,
-													 edgeDete.imgGrayWidthStep);*/
+													 edgeDete.imgGrayWidthStep);
 	edgeDete.GetGrayImage();
-	edgeDete.ShowImage("GrayImg",
+	/*edgeDete.ShowImage("GrayImg",
 										 edgeDete.imgGrayMat,
 										 edgeDete.imgHeight,
-										 edgeDete.imgWidth);
+										 edgeDete.imgWidth);*/
 	edgeDete.SobelEdgeDete();
 	/*edgeDete.ShowImage("EdgeImage",
 										 edgeDete.edgeMat,
