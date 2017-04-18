@@ -1,6 +1,8 @@
 #ifndef CEDGEDETE_H
 #define CEDGEDETE_H
 
+#define SQUARE(Value) (Value * Value)
+
 #include"CDIP.h"
 
 class CEdgeDete:public CDIP

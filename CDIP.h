@@ -56,6 +56,7 @@ public:
 	uchar* imgRMat;
 	uchar* imgGrayMat;
 	int imgGrayWidthStep;
+	int imgChannels;
 private:
 	IplImage* srcImg;
 };

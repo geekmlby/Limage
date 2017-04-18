@@ -32,10 +32,11 @@ void CDIP::ReadImage(char* path)
 	imgHeight = srcImg -> height;
 	imgWidth = srcImg -> width;
 	imgGrayWidthStep = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));
-	/*cout << "The height of image is:" << imgHeight << endl;
+	imgChannels = srcImg -> nChannels;
+	cout << "The height of image is:" << imgHeight << endl;
 	cout << "The width of image is:" << imgWidth << endl;
 	cout << "The widthStep of image is:" << imgGrayWidthStep << endl;
-	cout << "The channels of image is:" << srcImg -> nChannels << endl;*/
+	cout << "The channels of image is:" << imgChannels << endl;
 }
 
 void CDIP::ShowImage()

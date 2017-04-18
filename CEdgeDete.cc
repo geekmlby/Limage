@@ -4,7 +4,7 @@
 
 CEdgeDete::CEdgeDete()
 {
-	edgeMat = NULL;
+	edgeMat = new uchar[MAXHEIGHT * MAXWIDTH];
 }
 
 CEdgeDete::~CEdgeDete()
@@ -66,47 +66,49 @@ void CEdgeDete::FlipMat(uchar* matrix_out,
 	tmpMat = NULL;
 }
 
-/*void CEdgeDete::CalConv(uchar* matrix_out,   //Calculate convolution
-							 					uchar* matrix,
-							 					int* operMat_Gx,
-							 					int* operMat_Gy,
-												int height,
-												int width,
-												int operH,
-							 					int operW)
-{
-	int i,j;
-
-	for(i = operH / 2;i < height + (operH / 2) - 1;i++)
-	{
-		for(j = operW / 2;j < width + (operW / 2) - 1;j++)
-		{
-			matrix_out[(i - operH / 2) * width + ]
-		}
-	}
-}*/
-
 void CEdgeDete::SobelEdgeDete()
 {
-	static const int sobel_Gx[9] = {-1,-2,-1,0,0,0,1,2,1};
-	static const int sobel_Gy[9] = {-1,0,1,-2,0,2,-1,0,1};
+	int tmp;
+	static const int oper_Gx[9] = {-1,-2,-1,0,0,0,1,2,1};
+	static const int oper_Gy[9] = {-1,0,1,-2,0,2,-1,0,1};
 
 	WriteTxt<uchar>("/home/wangli/Limage/imgGrayMat.txt",
 									imgGrayMat,
 									imgHeight,
 									imgGrayWidthStep);
 	uchar* flippedMat;
-	uchar* convMat;
+	int conv_Gx,conv_Gy;
 
 	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	convMat = new uchar[MAXHEIGHT * MAXWIDTH];
 
-	/*FlipMat(flippedMat,
+	FlipMat(flippedMat,
 					imgGrayMat,
 					imgHeight,
 					imgGrayWidthStep,
 				  1,
-					1);*/
+					1);
+	for(int i = 1;i < imgHeight + 1;i++)
+	{
+		for(int j = 1;j < imgGrayWidthStep + 1;j++)
+		{
+			conv_Gx = (-1) * flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j - 1)] + flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j + 1)] +
+				 				(-2) * flippedMat[i * (imgGrayWidthStep + 2) + (j - 1)] + 2 * flippedMat[i * (imgGrayWidthStep + 2) + (j + 1)] +
+				 				(-1) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j - 1)] + flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j + 1)];
+			conv_Gy = flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j - 1)] + 2 * flippedMat[(i - 1) * (imgGrayWidthStep + 2) + j] + 
+								flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j + 1)] + (-1) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j - 1)] + 
+								(-2) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + j] + (-1) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j + 1)];
+
+			tmp = sqrt(SQUARE(conv_Gx) + SQUARE(conv_Gy));
+			if(tmp > 100)
+			{
+				edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] = 255;
+			}
+		}
+	}
+	WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
+									edgeMat,
+									imgHeight,
+									imgGrayWidthStep);
 }
 
 
