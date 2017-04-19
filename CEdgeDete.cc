@@ -34,10 +34,10 @@ void CEdgeDete::FlipMat(uchar* matrix_out,
 	{
 		memcpy(tmpMat + i * width,matrix + (imgHeight - (i - imgHeight - eqH + 1)) * width,width);
 	}
-	WriteTxt<uchar>("/home/wangli/Limage/UpDown.txt",
+	/*WriteTxt<uchar>("/home/wangli/Limage/UpDown.txt",
 									tmpMat,
 									height + 2 * eqH,
-									width);
+									width);*/
 	
 	for(i = 0;i < imgHeight + 2 * eqH;i++)
 	{								
@@ -57,10 +57,10 @@ void CEdgeDete::FlipMat(uchar* matrix_out,
 			}
 		}
 	}
-	WriteTxt<uchar>("/home/wangli/Limage/flippedMat.txt",
+	/*WriteTxt<uchar>("/home/wangli/Limage/flippedMat.txt",
 									matrix_out,
 									height + 2 * eqH,
-									width + 2 * eqW);
+									width + 2 * eqW);*/
 
 	delete tmpMat;
 	tmpMat = NULL;
@@ -72,10 +72,6 @@ void CEdgeDete::SobelEdgeDete()
 	static const int oper_Gx[9] = {-1,-2,-1,0,0,0,1,2,1};
 	static const int oper_Gy[9] = {-1,0,1,-2,0,2,-1,0,1};
 
-	WriteTxt<uchar>("/home/wangli/Limage/imgGrayMat.txt",
-									imgGrayMat,
-									imgHeight,
-									imgGrayWidthStep);
 	uchar* flippedMat;
 	int conv_Gx,conv_Gy;
 
@@ -105,13 +101,40 @@ void CEdgeDete::SobelEdgeDete()
 			}
 		}
 	}
-	WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
+	/*WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
 									edgeMat,
 									imgHeight,
-									imgGrayWidthStep);
+									imgGrayWidthStep);*/
 }
 
+void CEdgeDete::LaplaceEdgeDete()
+{
+	int tmp;
+	uchar* flippedMat;
 
+	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+
+	FlipMat(flippedMat,
+					imgGrayMat,
+					imgHeight,
+					imgGrayWidthStep,
+				  1,
+					1);
+	for(int i = 1;i < imgHeight + 1;i++)
+	{
+		for(int j = 1;j < imgGrayWidthStep + 1;j++)
+		{
+			tmp = flippedMat[(i - 1) * (imgGrayWidthStep + 2) + j] + flippedMat[i * (imgGrayWidthStep + 2) + (j - 1)] + 
+						flippedMat[i * (imgGrayWidthStep + 2) + (j + 1)] + flippedMat[(i + 1) * (imgGrayWidthStep + 2) + j] - 
+						4 * flippedMat[i * (imgGrayWidthStep + 2) + j];
+
+			if(tmp > 10)
+			{
+				edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] = 255;
+			}
+		}
+	}
+}
 
 
 

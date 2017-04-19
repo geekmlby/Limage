@@ -11,6 +11,7 @@ public:
 	CEdgeDete();
 	~CEdgeDete();
 	void SobelEdgeDete();
+	void LaplaceEdgeDete();
 private:
 	void FlipMat(uchar* matrix_out,
 							 uchar* matrix,

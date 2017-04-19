@@ -28,11 +28,16 @@ int main(int argc,char* argv[])
 													 edgeDete.imgHeight,
 													 edgeDete.imgGrayWidthStep);*/
 	edgeDete.GetGrayImage();
+	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/imgGrayMat.txt",
+													 edgeDete.imgGrayMat,
+													 edgeDete.imgHeight,
+													 edgeDete.imgGrayWidthStep);
 	edgeDete.ShowImage("GrayImg",
 										 edgeDete.imgGrayMat,
 										 edgeDete.imgHeight,
 										 edgeDete.imgWidth);
-	edgeDete.SobelEdgeDete();
+	//edgeDete.SobelEdgeDete();
+	edgeDete.LaplaceEdgeDete();
 	edgeDete.ShowImage("EdgeImage",
 										 edgeDete.edgeMat,
 										 edgeDete.imgHeight,

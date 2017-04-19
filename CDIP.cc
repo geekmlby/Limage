@@ -64,7 +64,7 @@ void CDIP::ShowImage(const char* windowName,
 	IplImage* tmpImg;
 	tmpImg = cvCreateImage(cvSize(width,height),depth,channels);
 	tmpImg -> imageData = (char*)matrix;
-	cvNamedWindow(windowName,1);
+	cvNamedWindow(windowName,0);
 	cvShowImage(windowName,tmpImg);
 	cvWaitKey(0);
 	cvDestroyWindow(windowName);
