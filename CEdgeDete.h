@@ -1,7 +1,9 @@
 #ifndef CEDGEDETE_H
 #define CEDGEDETE_H
 
-#define SQUARE(Value) (Value * Value)
+#define SQUARE(value) (value * value)
+#define MAXVALUE(value_a,value_b) (value_a > value_b ? value_a : value_b)
+#define MINVALUE(value_a,value_b) (value_a < value_b ? value_a : value_b)
 
 #include"CDIP.h"
 

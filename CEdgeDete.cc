@@ -109,10 +109,14 @@ void CEdgeDete::SobelEdgeDete()
 
 void CEdgeDete::LaplaceEdgeDete()
 {
-	int tmp;
+	double maxValue,minValue;
+	double* tmpArray;
 	uchar* flippedMat;
 
+	maxValue = 0;
+	minValue = 0;
 	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	tmpArray = new double[MAXHEIGHT * MAXWIDTH];
 
 	FlipMat(flippedMat,
 					imgGrayMat,
@@ -124,16 +128,31 @@ void CEdgeDete::LaplaceEdgeDete()
 	{
 		for(int j = 1;j < imgGrayWidthStep + 1;j++)
 		{
-			tmp = flippedMat[(i - 1) * (imgGrayWidthStep + 2) + j] + flippedMat[i * (imgGrayWidthStep + 2) + (j - 1)] + 
-						flippedMat[i * (imgGrayWidthStep + 2) + (j + 1)] + flippedMat[(i + 1) * (imgGrayWidthStep + 2) + j] - 
-						4 * flippedMat[i * (imgGrayWidthStep + 2) + j];
+			tmpArray[(i - 1) * imgGrayWidthStep + (j - 1)] = flippedMat[(i - 1) * (imgGrayWidthStep + 2) + j] + 
+																											 flippedMat[i * (imgGrayWidthStep + 2) + (j - 1)] + 
+																											 flippedMat[i * (imgGrayWidthStep + 2) + (j + 1)] + 
+																											 flippedMat[(i + 1) * (imgGrayWidthStep + 2) + j] - 
+																											 4 * flippedMat[i * (imgGrayWidthStep + 2) + j];
 
-			if(tmp > 10)
+			maxValue = MAXVALUE(tmpArray[(i - 1) * imgGrayWidthStep + (j - 1)],maxValue);
+			minValue = MINVALUE(tmpArray[(i - 1) * imgGrayWidthStep + (j - 1)],minValue);
+		}
+	}
+	for(int i = 0;i < imgHeight;i++)
+	{
+		for(int j = 0;j < imgGrayWidthStep;j++)
+		{
+			edgeMat[i * imgGrayWidthStep + j] = ((tmpArray[i * imgGrayWidthStep + j] - minValue) / (maxValue - minValue)) * 255;
+			if(edgeMat[i * imgGrayWidthStep + j] > 150)
 			{
-				edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] = 255;
+				edgeMat[i * imgGrayWidthStep + j] = 255;
 			}
 		}
 	}
+	WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
+									edgeMat,
+									imgHeight,
+									imgGrayWidthStep);
 }
 
 
