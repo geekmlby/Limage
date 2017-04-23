@@ -105,6 +105,8 @@ void CEdgeDete::SobelEdgeDete()
 									edgeMat,
 									imgHeight,
 									imgGrayWidthStep);*/
+	delete flippedMat;
+	flippedMat = NULL;
 }
 
 void CEdgeDete::LaplaceEdgeDete()
@@ -147,12 +149,20 @@ void CEdgeDete::LaplaceEdgeDete()
 			{
 				edgeMat[i * imgGrayWidthStep + j] = 255;
 			}
+			else
+			{
+				edgeMat[i * imgGrayWidthStep + j] = 0;
+			}
 		}
 	}
 	WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
 									edgeMat,
 									imgHeight,
 									imgGrayWidthStep);
+	delete flippedMat;
+	delete tmpArray;
+	flippedMat = NULL;
+	tmpArray = NULL;
 }
 
 
