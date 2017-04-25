@@ -1,6 +1,9 @@
 #ifndef CEDGEDETE_H
 #define CEDGEDETE_H
 
+#define MAXLENGTH 100
+#define PI 3.1415926
+
 #define SQUARE(value) (value * value)
 #define MAXVALUE(value_a,value_b) (value_a > value_b ? value_a : value_b)
 #define MINVALUE(value_a,value_b) (value_a < value_b ? value_a : value_b)
@@ -14,13 +17,9 @@ public:
 	~CEdgeDete();
 	void SobelEdgeDete();
 	void LaplaceEdgeDete();
+	void GaussianBlur();
 private:
-	void FlipMat(uchar* matrix_out,
-							 uchar* matrix,
-							 int height,
-							 int width,
-							 int eqH,
-							 int eqW);  
+ 
 public:
 	uchar* edgeMat;
 private:

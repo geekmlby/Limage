@@ -9,9 +9,10 @@ using namespace std;
 int main(int argc,char* argv[])
 {
   CEdgeDete edgeDete;
-  char path[PATHSIZE] = "/home/wangli/Limage/img/lena.jpg";
-  //cout << "Please input path:" << endl;   
-  //cin.get(path,100);
+	//char path[PATHSIZE] = "/home/wangli/Limage/img/testArray4_4.bmp";
+  char path[PATHSIZE] = "/home/wangli/Limage/img/lena_salt.bmp";
+  /*cout << "Please input path:" << endl;   
+  cin.get(path,100);*/
 	edgeDete.ReadImage(path);
 	edgeDete.ShowImage();
 	edgeDete.GetImageRGB();
@@ -42,6 +43,7 @@ int main(int argc,char* argv[])
 										 edgeDete.edgeMat,
 										 edgeDete.imgHeight,
 										 edgeDete.imgWidth);
+	edgeDete.GaussianBlur();
 	
   return 0;
 }

@@ -1,6 +1,7 @@
 #include"CEdgeDete.h"
 #include<stdio.h>
 #include<iostream>
+#include<math.h>
 
 CEdgeDete::CEdgeDete()
 {
@@ -11,59 +12,6 @@ CEdgeDete::~CEdgeDete()
 {
 	delete edgeMat;
 	edgeMat = NULL;
-}
-
-void CEdgeDete::FlipMat(uchar* matrix_out,
-							 					uchar* matrix,
-							 					int height,
-							 					int width,
-							 					int eqH,
-							 					int eqW)
-{
-	int i,j;
-	uchar* tmpMat;
-
-	tmpMat = new uchar[MAXHEIGHT * MAXWIDTH];
-
-	for(i = 0;i < eqH;i++)
-	{
-		memcpy(tmpMat + i * width,matrix + (eqH - (i + 1)) * width,width);
-	}
-	memcpy(tmpMat + eqH * width,matrix,imgHeight * width);
-	for(i = imgHeight + eqH;i < imgHeight + 2 * eqH;i++)
-	{
-		memcpy(tmpMat + i * width,matrix + (imgHeight - (i - imgHeight - eqH + 1)) * width,width);
-	}
-	/*WriteTxt<uchar>("/home/wangli/Limage/UpDown.txt",
-									tmpMat,
-									height + 2 * eqH,
-									width);*/
-	
-	for(i = 0;i < imgHeight + 2 * eqH;i++)
-	{								
-		for(j = 0;j < (width + 2 * eqW);j++)
-		{
-			if(j < eqW)
-			{
-				matrix_out[i * (width + 2 * eqW) + j] = tmpMat[i * width + (eqW - (j + 1))];
-			}
-			else if(j >= width + eqW)
-			{
-				matrix_out[i * (width + 2 * eqW) + j] = tmpMat[i * width + (width - (j - width - eqW + 1))];
-			}
-			else
-			{
-				matrix_out[i * (width + 2 * eqW) + j] = tmpMat[i * width + (j - eqW)];
-			}
-		}
-	}
-	/*WriteTxt<uchar>("/home/wangli/Limage/flippedMat.txt",
-									matrix_out,
-									height + 2 * eqH,
-									width + 2 * eqW);*/
-
-	delete tmpMat;
-	tmpMat = NULL;
 }
 
 void CEdgeDete::SobelEdgeDete()
@@ -145,7 +93,7 @@ void CEdgeDete::LaplaceEdgeDete()
 		for(int j = 0;j < imgGrayWidthStep;j++)
 		{
 			edgeMat[i * imgGrayWidthStep + j] = ((tmpArray[i * imgGrayWidthStep + j] - minValue) / (maxValue - minValue)) * 255;
-			if(edgeMat[i * imgGrayWidthStep + j] > 150)
+			if(edgeMat[i * imgGrayWidthStep + j] > 130)
 			{
 				edgeMat[i * imgGrayWidthStep + j] = 255;
 			}
@@ -165,7 +113,97 @@ void CEdgeDete::LaplaceEdgeDete()
 	tmpArray = NULL;
 }
 
+void CEdgeDete::GaussianBlur()
+{
+	double sigma;
+	int filterH,filterW;
+	int eqH,eqW;
+	double sum;
+	uchar* flippedMat;
+	double* gaussianMat;
+	double* weightArray;
+	double* tmpArray;
 
+	sigma = 1.5;
+	filterH = 3;
+	filterW = 3;
+	sum = 0;
+	eqH = filterH / 2;
+	eqW = filterW / 2;
+	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];	
+	gaussianMat = new double[MAXHEIGHT * MAXWIDTH];
+	weightArray = new double[MAXLENGTH];
+	tmpArray = new double[MAXLENGTH];
+
+	memset(gaussianMat,0,MAXHEIGHT * MAXWIDTH);
+	FlipMat(flippedMat,
+					imgGrayMat,
+					imgHeight,
+					imgGrayWidthStep,
+				  1,
+					1);
+	for(int x = (-1 * (filterH / 2));x < ((filterH / 2) + 1);x++)
+	{
+		for(int y = (-1 * (filterW / 2));y < ((filterW / 2) + 1);y++)
+		{
+			weightArray[(x + (filterH / 2)) * filterW + (y + (filterW / 2))] 
+			= exp(-1 * (SQUARE(x) + SQUARE(y)) / (2 * SQUARE(sigma))) / (2 * PI * SQUARE(sigma));
+			sum = sum + weightArray[(x + (filterH / 2)) * filterW + (y + (filterW / 2))];
+			//cout << "The weight is: " << weightArray[(x + (filterH / 2)) * filterW + (y + (filterW / 2))] << endl;
+		}
+	}
+	//cout << "The sum is: " << sum << endl;
+	for(int i = 0;i < (filterH * filterW);i++)
+	{
+		weightArray[i] = weightArray[i] / sum;
+		//cout << "The weight is: " << weightArray[i] << endl;
+	}
+	for(int i = 1;i < imgHeight + 1;i++)
+	{
+		for(int j = 1;j < imgGrayWidthStep + 1;j++)
+		{
+			for(int x = (-1 * (filterH / 2));x < ((filterH / 2) + 1);x++)
+			{
+				for(int y = (-1 * (filterW / 2));y < ((filterW / 2) + 1);y++)
+				{
+					tmpArray[(x + eqH) * filterW + (y + eqW)] = flippedMat[(i + x) * (imgGrayWidthStep + 2 * eqW) + (j + y)];
+					/*cout << "The index is: " << (x + eqH) * filterW + (y + eqW) << endl;
+					cout << "The tmpArray is: " << tmpArray[(x + eqH) * filterW + (y + eqW)] << endl;*/
+				}
+			}	
+			//cout << "**************************************************************************************************************" << endl;
+			for(int k = 0;k < (filterH * filterW);k++)
+			{
+				gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] += (tmpArray[k] * weightArray[k]);
+				/*cout << "The tmpArray is: " << tmpArray[k] << endl;
+				cout << "The weightArray is: " << weightArray[k] << endl;*/
+			}		
+			gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] = (int)gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)];
+			edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] = (uchar)gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)];;
+			/*cout << "The gaussianMat is: " << gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] << endl;
+			cout << "The uchar gaussianMat is: " << (int)gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] << endl;
+			cout << "The edgeMat is: " << edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] << endl;
+			cout << "**************************************************************************************************************" << endl;*/
+		}
+	}
+	ShowImage("GaussianBlurImage",
+						edgeMat,
+						imgHeight,
+						imgWidth);
+	/*WriteTxt<uchar>("/home/wangli/Limage/gaussianMat.txt",
+									gaussianMat,
+									imgHeight,
+									imgGrayWidthStep);*/
+
+	delete flippedMat;
+	delete gaussianMat;
+	delete weightArray;
+	delete tmpArray;
+	flippedMat = NULL;
+	gaussianMat = NULL;
+	weightArray = NULL;
+	tmpArray = NULL;
+}
 
 
 

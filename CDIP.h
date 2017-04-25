@@ -28,7 +28,7 @@ public:
 
 	template<class type>
 	void WriteTxt(const char* txtName,
-								type * matrix,
+								type* matrix,
 								int height,
 								int width)
 	{
@@ -46,6 +46,12 @@ public:
 		fclose(fp);		
 	}
 
+	void FlipMat(uchar* matrix_out,
+							 uchar* matrix,
+							 int height,
+							 int width,
+							 int eqH,
+							 int eqW); 
 private:
 
 public:
