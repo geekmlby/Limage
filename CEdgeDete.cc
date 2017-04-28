@@ -14,7 +14,11 @@ CEdgeDete::~CEdgeDete()
 	edgeMat = NULL;
 }
 
-void CEdgeDete::SobelEdgeDete()
+void CEdgeDete::SobelEdgeDete(uchar* matrix_out,
+										 					uchar* matrix,
+										 					int height,
+										 					int width,
+										 					int sigma)
 {
 	int tmp;
 	static const int oper_Gx[9] = {-1,-2,-1,0,0,0,1,2,1};
@@ -26,38 +30,42 @@ void CEdgeDete::SobelEdgeDete()
 	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
 
 	FlipMat(flippedMat,
-					imgGrayMat,
-					imgHeight,
-					imgGrayWidthStep,
+					matrix,
+					height,
+					width,
 				  1,
 					1);
-	for(int i = 1;i < imgHeight + 1;i++)
+	for(int i = 1;i < height + 1;i++)
 	{
-		for(int j = 1;j < imgGrayWidthStep + 1;j++)
+		for(int j = 1;j < width + 1;j++)
 		{
-			conv_Gx = (-1) * flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j - 1)] + flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j + 1)] +
-				 				(-2) * flippedMat[i * (imgGrayWidthStep + 2) + (j - 1)] + 2 * flippedMat[i * (imgGrayWidthStep + 2) + (j + 1)] +
-				 				(-1) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j - 1)] + flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j + 1)];
-			conv_Gy = flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j - 1)] + 2 * flippedMat[(i - 1) * (imgGrayWidthStep + 2) + j] + 
-								flippedMat[(i - 1) * (imgGrayWidthStep + 2) + (j + 1)] + (-1) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j - 1)] + 
-								(-2) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + j] + (-1) * flippedMat[(i + 1) * (imgGrayWidthStep + 2) + (j + 1)];
+			conv_Gx = (-1) * flippedMat[(i - 1) * (width + 2) + (j - 1)] + flippedMat[(i - 1) * (width + 2) + (j + 1)] +
+				 				(-2) * flippedMat[i * (width + 2) + (j - 1)] + 2 * flippedMat[i * (width + 2) + (j + 1)] +
+				 				(-1) * flippedMat[(i + 1) * (width + 2) + (j - 1)] + flippedMat[(i + 1) * (width + 2) + (j + 1)];
+			conv_Gy = flippedMat[(i - 1) * (width + 2) + (j - 1)] + 2 * flippedMat[(i - 1) * (width + 2) + j] + 
+								flippedMat[(i - 1) * (width + 2) + (j + 1)] + (-1) * flippedMat[(i + 1) * (width + 2) + (j - 1)] + 
+								(-2) * flippedMat[(i + 1) * (width + 2) + j] + (-1) * flippedMat[(i + 1) * (width + 2) + (j + 1)];
 
 			tmp = sqrt(SQUARE(conv_Gx) + SQUARE(conv_Gy));
-			if(tmp > 100)
+			if(tmp > sigma)
 			{
-				edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] = 255;
+				matrix_out[(i - 1) * width + (j - 1)] = 255;
 			}
 		}
 	}
 	/*WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
 									edgeMat,
 									imgHeight,
-									imgGrayWidthStep);*/
+									imgWidthStep);*/
 	delete flippedMat;
 	flippedMat = NULL;
 }
 
-void CEdgeDete::LaplaceEdgeDete()
+void CEdgeDete::LaplaceEdgeDete(uchar* matrix_out,
+										 						uchar* matrix,
+										 						int height,
+										 						int width,
+										 						int sigma)
 {
 	double maxValue,minValue;
 	double* tmpArray;
@@ -69,44 +77,42 @@ void CEdgeDete::LaplaceEdgeDete()
 	tmpArray = new double[MAXHEIGHT * MAXWIDTH];
 
 	FlipMat(flippedMat,
-					imgGrayMat,
-					imgHeight,
-					imgGrayWidthStep,
+					matrix,
+					height,
+					width,
 				  1,
 					1);
-	for(int i = 1;i < imgHeight + 1;i++)
+	for(int i = 1;i < height + 1;i++)
 	{
-		for(int j = 1;j < imgGrayWidthStep + 1;j++)
+		for(int j = 1;j < width + 1;j++)
 		{
-			tmpArray[(i - 1) * imgGrayWidthStep + (j - 1)] = flippedMat[(i - 1) * (imgGrayWidthStep + 2) + j] + 
-																											 flippedMat[i * (imgGrayWidthStep + 2) + (j - 1)] + 
-																											 flippedMat[i * (imgGrayWidthStep + 2) + (j + 1)] + 
-																											 flippedMat[(i + 1) * (imgGrayWidthStep + 2) + j] - 
-																											 4 * flippedMat[i * (imgGrayWidthStep + 2) + j];
+			tmpArray[(i - 1) * width + (j - 1)] = flippedMat[(i - 1) * (width + 2) + j] + flippedMat[i * (width + 2) + (j - 1)] + 
+																						flippedMat[i * (width + 2) + (j + 1)] + flippedMat[(i + 1) * (width + 2) + j] - 
+																						4 * flippedMat[i * (width + 2) + j];
 
-			maxValue = MAXVALUE(tmpArray[(i - 1) * imgGrayWidthStep + (j - 1)],maxValue);
-			minValue = MINVALUE(tmpArray[(i - 1) * imgGrayWidthStep + (j - 1)],minValue);
+			maxValue = MAXVALUE(tmpArray[(i - 1) * width + (j - 1)],maxValue);
+			minValue = MINVALUE(tmpArray[(i - 1) * width + (j - 1)],minValue);
 		}
 	}
-	for(int i = 0;i < imgHeight;i++)
+	for(int i = 0;i < height;i++)
 	{
-		for(int j = 0;j < imgGrayWidthStep;j++)
+		for(int j = 0;j < width;j++)
 		{
-			edgeMat[i * imgGrayWidthStep + j] = ((tmpArray[i * imgGrayWidthStep + j] - minValue) / (maxValue - minValue)) * 255;
-			if(edgeMat[i * imgGrayWidthStep + j] > 130)
+			edgeMat[i * width + j] = ((tmpArray[i * width + j] - minValue) / (maxValue - minValue)) * 255;
+			if(edgeMat[i * width + j] > sigma)
 			{
-				edgeMat[i * imgGrayWidthStep + j] = 255;
+				edgeMat[i * width + j] = 255;
 			}
 			else
 			{
-				edgeMat[i * imgGrayWidthStep + j] = 0;
+				edgeMat[i * width + j] = 0;
 			}
 		}
 	}
 	WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
 									edgeMat,
 									imgHeight,
-									imgGrayWidthStep);
+									imgWidthStep);
 	delete flippedMat;
 	delete tmpArray;
 	flippedMat = NULL;
@@ -139,7 +145,7 @@ void CEdgeDete::GaussianBlur()
 	FlipMat(flippedMat,
 					imgGrayMat,
 					imgHeight,
-					imgGrayWidthStep,
+					imgWidthStep,
 				  1,
 					1);
 	for(int x = (-1 * (filterH / 2));x < ((filterH / 2) + 1);x++)
@@ -160,13 +166,13 @@ void CEdgeDete::GaussianBlur()
 	}
 	for(int i = 1;i < imgHeight + 1;i++)
 	{
-		for(int j = 1;j < imgGrayWidthStep + 1;j++)
+		for(int j = 1;j < imgWidthStep + 1;j++)
 		{
 			for(int x = (-1 * (filterH / 2));x < ((filterH / 2) + 1);x++)
 			{
 				for(int y = (-1 * (filterW / 2));y < ((filterW / 2) + 1);y++)
 				{
-					tmpArray[(x + eqH) * filterW + (y + eqW)] = flippedMat[(i + x) * (imgGrayWidthStep + 2 * eqW) + (j + y)];
+					tmpArray[(x + eqH) * filterW + (y + eqW)] = flippedMat[(i + x) * (imgWidthStep + 2 * eqW) + (j + y)];
 					/*cout << "The index is: " << (x + eqH) * filterW + (y + eqW) << endl;
 					cout << "The tmpArray is: " << tmpArray[(x + eqH) * filterW + (y + eqW)] << endl;*/
 				}
@@ -174,15 +180,15 @@ void CEdgeDete::GaussianBlur()
 			//cout << "**************************************************************************************************************" << endl;
 			for(int k = 0;k < (filterH * filterW);k++)
 			{
-				gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] += (tmpArray[k] * weightArray[k]);
+				gaussianMat[(i - 1) * imgWidthStep + (j - 1)] += (tmpArray[k] * weightArray[k]);
 				/*cout << "The tmpArray is: " << tmpArray[k] << endl;
 				cout << "The weightArray is: " << weightArray[k] << endl;*/
 			}		
-			gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] = (int)gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)];
-			edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] = (uchar)gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)];;
-			/*cout << "The gaussianMat is: " << gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] << endl;
-			cout << "The uchar gaussianMat is: " << (int)gaussianMat[(i - 1) * imgGrayWidthStep + (j - 1)] << endl;
-			cout << "The edgeMat is: " << edgeMat[(i - 1) * imgGrayWidthStep + (j - 1)] << endl;
+			gaussianMat[(i - 1) * imgWidthStep + (j - 1)] = (int)gaussianMat[(i - 1) * imgWidthStep + (j - 1)];
+			edgeMat[(i - 1) * imgWidthStep + (j - 1)] = (uchar)gaussianMat[(i - 1) * imgWidthStep + (j - 1)];;
+			/*cout << "The gaussianMat is: " << gaussianMat[(i - 1) * imgWidthStep + (j - 1)] << endl;
+			cout << "The uchar gaussianMat is: " << (int)gaussianMat[(i - 1) * imgWidthStep + (j - 1)] << endl;
+			cout << "The edgeMat is: " << edgeMat[(i - 1) * imgWidthStep + (j - 1)] << endl;
 			cout << "**************************************************************************************************************" << endl;*/
 		}
 	}
@@ -193,7 +199,7 @@ void CEdgeDete::GaussianBlur()
 	/*WriteTxt<uchar>("/home/wangli/Limage/gaussianMat.txt",
 									gaussianMat,
 									imgHeight,
-									imgGrayWidthStep);*/
+									imgWidthStep);*/
 
 	delete flippedMat;
 	delete gaussianMat;

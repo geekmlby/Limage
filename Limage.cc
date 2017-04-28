@@ -10,7 +10,7 @@ int main(int argc,char* argv[])
 {
   CEdgeDete edgeDete;
 	//char path[PATHSIZE] = "/home/wangli/Limage/img/testArray4_4.bmp";
-  char path[PATHSIZE] = "/home/wangli/Limage/img/lena_salt.bmp";
+  char path[PATHSIZE] = "/home/wangli/Limage/img/lena.bmp";
   /*cout << "Please input path:" << endl;   
   cin.get(path,100);*/
 	edgeDete.ReadImage(path);
@@ -19,31 +19,51 @@ int main(int argc,char* argv[])
 	/*edgeDete.WriteTxt<uchar>("/home/wangli/Limage/RedComp.txt",
 													 edgeDete.imgRMat,
 													 edgeDete.imgHeight,
-													 edgeDete.imgGrayWidthStep);
+													 edgeDete.imgWidthStep);
 	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/GreenComp.txt",
 													 edgeDete.imgGMat,
 													 edgeDete.imgHeight,
-													 edgeDete.imgGrayWidthStep);
+													 edgeDete.imgWidthStep);
 	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/BlueComp.txt",
 													 edgeDete.imgBMat,
 													 edgeDete.imgHeight,
-													 edgeDete.imgGrayWidthStep);*/
+													 edgeDete.imgWidthStep);*/
+	edgeDete.ShowImage("RImage",
+										 edgeDete.imgRMat,
+										 edgeDete.imgHeight,
+										 edgeDete.imgWidth);
+	edgeDete.ShowImage("GImage",
+										 edgeDete.imgGMat,
+										 edgeDete.imgHeight,
+										 edgeDete.imgWidth);
+	edgeDete.ShowImage("BImage",
+										 edgeDete.imgBMat,
+										 edgeDete.imgHeight,
+										 edgeDete.imgWidth);
 	edgeDete.GetGrayImage();
 	edgeDete.WriteTxt<uchar>("/home/wangli/Limage/imgGrayMat.txt",
 													 edgeDete.imgGrayMat,
 													 edgeDete.imgHeight,
-													 edgeDete.imgGrayWidthStep);
+													 edgeDete.imgWidthStep);
 	edgeDete.ShowImage("GrayImg",
 										 edgeDete.imgGrayMat,
 										 edgeDete.imgHeight,
 										 edgeDete.imgWidth);
-	//edgeDete.SobelEdgeDete();
-	edgeDete.LaplaceEdgeDete();
+	/*edgeDete.SobelEdgeDete(edgeDete.edgeMat,
+												 edgeDete.imgGrayMat,
+												 edgeDete.imgHeight,
+												 edgeDete.imgWidth,
+												 150);*/
+	edgeDete.LaplaceEdgeDete(edgeDete.edgeMat,
+												 	 edgeDete.imgGrayMat,
+												 	 edgeDete.imgHeight,
+												 	 edgeDete.imgWidth,
+												 	 150);
 	edgeDete.ShowImage("EdgeImage",
 										 edgeDete.edgeMat,
 										 edgeDete.imgHeight,
 										 edgeDete.imgWidth);
-	edgeDete.GaussianBlur();
+	//edgeDete.GaussianBlur();
 	
   return 0;
 }

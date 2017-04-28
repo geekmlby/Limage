@@ -15,8 +15,16 @@ class CEdgeDete:public CDIP
 public:
 	CEdgeDete();
 	~CEdgeDete();
-	void SobelEdgeDete();
-	void LaplaceEdgeDete();
+	void SobelEdgeDete(uchar* matrix_out,
+										 uchar* matrix,
+										 int height,
+										 int width,
+										 int sigma);
+	void LaplaceEdgeDete(uchar* matrix_out,
+										 	 uchar* matrix,
+										 	 int height,
+										 	 int width,
+										 	 int sigma);
 	void GaussianBlur();
 private:
  

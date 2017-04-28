@@ -6,6 +6,7 @@
 
 CDIP::CDIP()
 {
+	imgData = NULL;
 	srcImg = NULL;
 	imgBMat = NULL;
 	imgGMat = NULL;
@@ -28,15 +29,22 @@ CDIP::~CDIP()
 
 void CDIP::ReadImage(char* path)
 {	
-	srcImg = cvLoadImage(path,1);
+	srcImg = cvLoadImage(path,-1);
 	imgHeight = srcImg -> height;
 	imgWidth = srcImg -> width;
-	imgGrayWidthStep = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));
+	imgActualWidth = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));
+	imgWidthStep = srcImg -> widthStep;
 	imgChannels = srcImg -> nChannels;
+	imgDepth = srcImg -> depth;
+	imgSize = srcImg -> imageSize;
+	imgData = (uchar*)srcImg -> imageData;
 	cout << "The height of image is:" << imgHeight << endl;
 	cout << "The width of image is:" << imgWidth << endl;
-	cout << "The widthStep of image is:" << imgGrayWidthStep << endl;
+	cout << "The widthStep of image is:" << imgWidthStep << endl;
 	cout << "The channels of image is:" << imgChannels << endl;
+	cout << "The depth of image is: " << imgDepth << endl;
+	cout << "The widthStep of image is: " << imgWidthStep << endl;
+	cout << "The imageSize of image is: " << imgSize << endl;
 }
 
 void CDIP::ShowImage()
@@ -78,11 +86,11 @@ void CDIP::GetImageRGB()
 	imgRMat = new uchar[MAXHEIGHT * MAXWIDTH];	
 	for(int i = 0;i < imgHeight;i++)
 	{
-		for(int j = 0;j < imgGrayWidthStep;j++)
+		for(int j = 0;j < imgWidthStep;j++)
 		{
-			imgBMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 0];
-			imgGMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 1];
-			imgRMat[i * imgGrayWidthStep + j] = ((uchar *)(srcImg -> imageData + i * srcImg -> widthStep))[j * srcImg -> nChannels + 2];
+			imgBMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 0];
+			imgGMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 1];
+			imgRMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 2];
 		}
 	}
 }
@@ -92,17 +100,37 @@ void CDIP::GetGrayImage()
 	double grayValueSum;
 	int pos;
 	imgGrayMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	double r,g,b;
-	for(int i = 0;i < imgHeight;i++)
+
+	if(3 == imgChannels)
 	{
-		for(int j = 0;j < imgGrayWidthStep;j++)
+		if(NULL == imgRMat || NULL == imgGMat || NULL == imgBMat)
 		{
-			grayValueSum = 2989 * imgRMat[i * imgGrayWidthStep + j] +
-										 5866 * imgGMat[i * imgGrayWidthStep + j] +
-										 1145 * imgBMat[i * imgGrayWidthStep + j];
-			imgGrayMat[i * imgGrayWidthStep + j] = (int)(grayValueSum / 10000);
- 		}
+			GetImageRGB();
+		}
+		else
+		{
+			for(int i = 0;i < imgHeight;i++)
+			{
+				for(int j = 0;j < imgWidthStep;j++)
+				{
+					grayValueSum = 2989 * imgRMat[i * imgActualWidth + j] +
+										 	 	 5866 * imgGMat[i * imgActualWidth + j] +
+										 	 	 1145 * imgBMat[i * imgActualWidth + j];
+					imgGrayMat[i * imgActualWidth + j] = (int)(grayValueSum / 10000);
+ 				}
+			}
+		}
 	}
+	if(1 == imgChannels)
+	{
+		for(int i = 0;i < imgHeight;i++)
+		{
+			for(int j = 0;j < imgWidthStep;j++)
+			{
+				imgGrayMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j];
+			}
+		}
+	}	
 }
 
 void CDIP::FlipMat(uchar* matrix_out,

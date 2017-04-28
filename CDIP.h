@@ -57,12 +57,16 @@ private:
 public:
 	int imgHeight;
 	int imgWidth;
+	int imgActualWidth;
 	uchar* imgBMat;
 	uchar* imgGMat;
 	uchar* imgRMat;
 	uchar* imgGrayMat;
-	int imgGrayWidthStep;
+	int imgWidthStep;
 	int imgChannels;
+	int imgDepth;
+	int imgSize;
+	uchar* imgData;
 private:
 	IplImage* srcImg;
 };
