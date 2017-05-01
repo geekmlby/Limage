@@ -9,7 +9,7 @@ using namespace std;
 int main(int argc,char* argv[])
 {
   CEdgeDete edgeDete;
-	//char path[PATHSIZE] = "/home/wangli/Limage/img/testArray4_4.bmp";
+	//char path[PATHSIZE] = "/home/wangli/Limage/img/testArray7_7.bmp";
   char path[PATHSIZE] = "/home/wangli/Limage/img/lena.bmp";
   /*cout << "Please input path:" << endl;   
   cin.get(path,100);*/

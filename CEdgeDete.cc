@@ -21,8 +21,6 @@ void CEdgeDete::SobelEdgeDete(uchar* matrix_out,
 										 					int sigma)
 {
 	int tmp;
-	static const int oper_Gx[9] = {-1,-2,-1,0,0,0,1,2,1};
-	static const int oper_Gy[9] = {-1,0,1,-2,0,2,-1,0,1};
 
 	uchar* flippedMat;
 	int conv_Gx,conv_Gy;

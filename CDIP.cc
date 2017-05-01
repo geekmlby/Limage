@@ -6,11 +6,11 @@
 
 CDIP::CDIP()
 {
-	imgData = NULL;
 	srcImg = NULL;
-	imgBMat = NULL;
-	imgGMat = NULL;
+	imgData = NULL;
 	imgRMat = NULL;
+	imgGMat = NULL;
+	imgBMat = NULL;
 	imgGrayMat = NULL;
 }
 
@@ -32,19 +32,17 @@ void CDIP::ReadImage(char* path)
 	srcImg = cvLoadImage(path,-1);
 	imgHeight = srcImg -> height;
 	imgWidth = srcImg -> width;
-	imgActualWidth = (0 == (srcImg -> width) % 4)?(srcImg -> width):(srcImg -> width) + (4 - ((srcImg -> width) % 4));
-	imgWidthStep = srcImg -> widthStep;
 	imgChannels = srcImg -> nChannels;
 	imgDepth = srcImg -> depth;
 	imgSize = srcImg -> imageSize;
+	imgWidthStep = srcImg -> widthStep;
 	imgData = (uchar*)srcImg -> imageData;
-	cout << "The height of image is:" << imgHeight << endl;
-	cout << "The width of image is:" << imgWidth << endl;
-	cout << "The widthStep of image is:" << imgWidthStep << endl;
-	cout << "The channels of image is:" << imgChannels << endl;
-	cout << "The depth of image is: " << imgDepth << endl;
-	cout << "The widthStep of image is: " << imgWidthStep << endl;
-	cout << "The imageSize of image is: " << imgSize << endl;
+	cout << "The height of the image is:" << imgHeight << endl;
+	cout << "The width of the image is:" << imgWidth << endl;
+	cout << "The channels of the image is:" << imgChannels << endl;
+	cout << "The depth of the image is: " << imgDepth << endl;
+	cout << "The imageSize of the image is: " << imgSize << endl;
+	cout << "The widthStep of the image is:" << imgWidthStep << endl;
 }
 
 void CDIP::ShowImage()
@@ -62,6 +60,9 @@ void CDIP::ShowImage()
 	}
 }
 
+/*************************************************************************
+Function:Default display gray images.
+*************************************************************************/
 void CDIP::ShowImage(const char* windowName,
 								 		 uchar* matrix,
 								 		 int height,
@@ -81,16 +82,16 @@ void CDIP::ShowImage(const char* windowName,
 
 void CDIP::GetImageRGB()
 {
-	imgBMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	imgGMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	imgRMat = new uchar[MAXHEIGHT * MAXWIDTH];	
+	imgGMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	imgBMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	for(int i = 0;i < imgHeight;i++)
 	{
-		for(int j = 0;j < imgWidthStep;j++)
+		for(int j = 0;j < imgWidth;j++)
 		{
-			imgBMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 0];
-			imgGMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 1];
-			imgRMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 2];
+			imgBMat[i * imgWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 0];
+			imgGMat[i * imgWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 1];
+			imgRMat[i * imgWidth + j] = imgData[i * imgWidthStep + j * imgChannels + 2];
 		}
 	}
 }
@@ -111,12 +112,12 @@ void CDIP::GetGrayImage()
 		{
 			for(int i = 0;i < imgHeight;i++)
 			{
-				for(int j = 0;j < imgWidthStep;j++)
+				for(int j = 0;j < imgWidth;j++)
 				{
-					grayValueSum = 2989 * imgRMat[i * imgActualWidth + j] +
-										 	 	 5866 * imgGMat[i * imgActualWidth + j] +
-										 	 	 1145 * imgBMat[i * imgActualWidth + j];
-					imgGrayMat[i * imgActualWidth + j] = (int)(grayValueSum / 10000);
+					grayValueSum = 2989 * imgRMat[i * imgWidth + j] +
+										 	 	 5866 * imgGMat[i * imgWidth + j] +
+										 	 	 1145 * imgBMat[i * imgWidth + j];
+					imgGrayMat[i * imgWidth + j] = (int)(grayValueSum / 10000);
  				}
 			}
 		}
@@ -125,9 +126,9 @@ void CDIP::GetGrayImage()
 	{
 		for(int i = 0;i < imgHeight;i++)
 		{
-			for(int j = 0;j < imgWidthStep;j++)
+			for(int j = 0;j < imgWidth;j++)
 			{
-				imgGrayMat[i * imgActualWidth + j] = imgData[i * imgWidthStep + j];
+				imgGrayMat[i * imgWidth + j] = imgData[i * imgWidthStep + j];
 			}
 		}
 	}	
@@ -183,7 +184,7 @@ void CDIP::FlipMat(uchar* matrix_out,
 			}
 		}
 	}
-	WriteTxt<uchar>("/home/wangli/Limage/matrix_out.txt",
+	WriteTxt<uchar>("/home/wangli/Limage/flippedMat.txt",
 									matrix_out,
 									height + 2 * eqH,
 									width + 2 * eqW);
