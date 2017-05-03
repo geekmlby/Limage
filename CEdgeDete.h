@@ -1,7 +1,7 @@
 #ifndef CEDGEDETE_H
 #define CEDGEDETE_H
 
-#define MAXLENGTH 100
+#define MAXLENGTH 1000
 #define PI 3.1415926
 
 #define SQUARE(value) (value * value)
@@ -19,12 +19,40 @@ public:
 										 uchar* matrix,
 										 int height,
 										 int width,
-										 int sigma);
+										 int thresold,
+										 int filterH = 3,
+										 int filterW = 3);
 	void LaplaceEdgeDete(uchar* matrix_out,
 										 	 uchar* matrix,
 										 	 int height,
 										 	 int width,
-										 	 int sigma);
+										 	 int thresold,
+ 											 int filterH = 3,
+										   int filterW = 3);
+	void GaussianBlur(uchar* matrix_out,
+										uchar* matrix,
+										int height,
+										int width,
+										int filterH,
+										int filterW,
+										double sigma);
+	void CalConv(uchar* matrix_out,
+						   uchar* matrix,
+							 //double* weightMatrix,
+							 int height,
+							 int width,
+							 int filterH,
+							 int filterW,
+							 double sigma);
+	void CannyEdgeDete(uchar* matrix_out,
+										 uchar* matrix,
+										 int height,
+										 int width,
+										 int filterH,
+										 int filterW,
+										 int upThresold,
+										 int downThresold,
+										 double sigma);
 	void GaussianBlur();
 private:
  

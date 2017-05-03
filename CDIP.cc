@@ -138,12 +138,15 @@ void CDIP::FlipMat(uchar* matrix_out,
 							 		 uchar* matrix,
 							 		 int height,
 							 		 int width,
-							 		 int eqH,
-							 		 int eqW)
+							 		 int filterH,
+							 		 int filterW)
 {
 	int i,j;
+	int eqH,eqW;
 	uchar* tmpMat;
 
+	eqH = filterH / 2;
+	eqW = filterW / 2;
 	tmpMat = new uchar[MAXHEIGHT * MAXWIDTH];
 
 	if(height <= 0 || width <= 0 || eqH > height || eqW > width)
@@ -184,6 +187,10 @@ void CDIP::FlipMat(uchar* matrix_out,
 			}
 		}
 	}
+	ShowImage("FlippedImage",
+						matrix_out,
+						height + 2 * eqH,
+						width + 2 * eqW);
 	WriteTxt<uchar>("/home/wangli/Limage/flippedMat.txt",
 									matrix_out,
 									height + 2 * eqH,

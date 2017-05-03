@@ -50,8 +50,8 @@ public:
 							 uchar* matrix,
 							 int height,
 							 int width,
-							 int eqH,
-							 int eqW); 
+							 int filterH,
+							 int filterW); 
 private:
 
 public:
