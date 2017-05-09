@@ -18,9 +18,7 @@ void CEdgeDete::SobelEdgeDete(uchar* matrix_out,
 										 					uchar* matrix,
 										 					int height,
 										 					int width,
-										 					int thresold,
-															int filterH,
-															int filterW)
+										 					int thresold)
 {
 	int tmp;
 	uchar* flippedMat;
@@ -34,8 +32,13 @@ void CEdgeDete::SobelEdgeDete(uchar* matrix_out,
 					matrix,
 					height,
 					width,
-				  filterH,
-					filterW);
+				  3,
+					3);
+	WriteTxt<uchar>("/home/wangli/Limage/flippedMat_SobelEdgeDete.txt",
+									flippedMat,
+									height + 2,
+									width + 2);
+
 	for(int i = 1;i < height + 1;i++)
 	{
 		for(int j = 1;j < width + 1;j++)
@@ -54,10 +57,16 @@ void CEdgeDete::SobelEdgeDete(uchar* matrix_out,
 			}
 		}
 	}
-	/*WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
+
+	ShowImage("SobelEdgeDeteImg",
+						matrix_out,
+						height,
+						width);
+	WriteTxt<uchar>("/home/wangli/Limage/SobelEdgeDete.txt",
 									edgeMat,
-									imgHeight,
-									imgWidthStep);*/
+									height,
+									width);
+
 	delete flippedMat;
 	flippedMat = NULL;
 }
@@ -66,9 +75,7 @@ void CEdgeDete::LaplaceEdgeDete(uchar* matrix_out,
 										 						uchar* matrix,
 										 						int height,
 										 						int width,
-										 						int thresold,
-																int filterH,
-																int filterW)
+										 						int thresold)
 {
 	double maxValue,minValue;
 	double* tmpArray;
@@ -85,8 +92,13 @@ void CEdgeDete::LaplaceEdgeDete(uchar* matrix_out,
 					matrix,
 					height,
 					width,
-				  filterH,
-					filterW);
+				  3,
+					3);
+	WriteTxt<uchar>("/home/wangli/Limage/flippedMat_LaplaceEdgeDete.txt",
+									flippedMat,
+									height + 2,
+									width + 2);
+
 	for(int i = 1;i < height + 1;i++)
 	{
 		for(int j = 1;j < width + 1;j++)
@@ -114,10 +126,16 @@ void CEdgeDete::LaplaceEdgeDete(uchar* matrix_out,
 			}
 		}
 	}
-	WriteTxt<uchar>("/home/wangli/Limage/edgeMat.txt",
+
+	ShowImage("LaplaceEdgeDeteImg",
+						matrix_out,
+						height,
+						width);
+	WriteTxt<uchar>("/home/wangli/Limage/LaplaceEdgeDete.txt",
 									edgeMat,
-									imgHeight,
-									imgWidthStep);
+									height,
+									width);
+
 	delete flippedMat;
 	delete tmpArray;
 	flippedMat = NULL;
@@ -133,11 +151,9 @@ void CEdgeDete::GaussianBlur(uchar* matrix_out,
 														 double sigma)
 {
 	uchar* flippedMat;
-	double* weightArray;
 	double* windowArray;
 
 	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];	
-	weightArray = new double[MAXLENGTH];
 	windowArray = new double[MAXLENGTH];
 
 	FlipMat(flippedMat,
@@ -146,34 +162,35 @@ void CEdgeDete::GaussianBlur(uchar* matrix_out,
 					width,
 				  filterH,
 					filterW);
+	WriteTxt<uchar>("/home/wangli/Limage/flippedMat_GaussianBlur.txt",
+									flippedMat,
+									height + filterH - 1,
+									width + filterW - 1);
 	CalConv(matrix_out,
 					flippedMat,
-					//weightArray,
 					height,
 					width,
 					filterH,
 					filterW,
 					sigma);
-	ShowImage("GaussianBlurImage",
+
+	ShowImage("GaussianBlurImg",
 						matrix_out,
 						height,
 						width);
-	WriteTxt<uchar>("/home/wangli/Limage/gaussianBlurMat.txt",
+	WriteTxt<uchar>("/home/wangli/Limage/GaussianBlur.txt",
 									matrix_out,
 									height,
 									width);
 
 	delete flippedMat;
-	delete weightArray;
 	delete windowArray;
 	flippedMat = NULL;
-	weightArray = NULL;
 	windowArray = NULL;
 }
 
 void CEdgeDete::CalConv(uchar* matrix_out,
 						   					uchar* matrix,
-							 					//double* weightMatrix,
 							 					int height,
 							 					int width,
 							 					int filterH,
@@ -243,7 +260,10 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 {
 	int tmp;
 	uchar* gaussianMat;
+
 	gaussianMat = new uchar[MAXHEIGHT * MAXWIDTH];
+
+	memset(matrix_out,0,MAXHEIGHT * MAXWIDTH);
 
 	if(upThresold < downThresold)
 	{
@@ -261,6 +281,15 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 							 filterH,
 							 filterW,
 							 sigma);
+
+	ShowImage("CannyEdgeDeteImg",
+						matrix_out,
+						height,
+						width);
+	WriteTxt<uchar>("/home/wangli/Limage/CannyEdgeDete.txt",
+									matrix_out,
+									height,
+									width);
 
 	delete gaussianMat;
 	gaussianMat = NULL;

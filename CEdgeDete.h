@@ -19,16 +19,12 @@ public:
 										 uchar* matrix,
 										 int height,
 										 int width,
-										 int thresold,
-										 int filterH = 3,
-										 int filterW = 3);
+										 int thresold);
 	void LaplaceEdgeDete(uchar* matrix_out,
 										 	 uchar* matrix,
 										 	 int height,
 										 	 int width,
-										 	 int thresold,
- 											 int filterH = 3,
-										   int filterW = 3);
+										 	 int thresold);
 	void GaussianBlur(uchar* matrix_out,
 										uchar* matrix,
 										int height,
@@ -38,7 +34,6 @@ public:
 										double sigma);
 	void CalConv(uchar* matrix_out,
 						   uchar* matrix,
-							 //double* weightMatrix,
 							 int height,
 							 int width,
 							 int filterH,
@@ -53,7 +48,6 @@ public:
 										 int upThresold,
 										 int downThresold,
 										 double sigma);
-	void GaussianBlur();
 private:
  
 public:

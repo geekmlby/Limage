@@ -37,12 +37,14 @@ void CDIP::ReadImage(char* path)
 	imgSize = srcImg -> imageSize;
 	imgWidthStep = srcImg -> widthStep;
 	imgData = (uchar*)srcImg -> imageData;
+	cout << "***************** The Data of image,as shown below: *****************" << endl;
 	cout << "The height of the image is:" << imgHeight << endl;
 	cout << "The width of the image is:" << imgWidth << endl;
 	cout << "The channels of the image is:" << imgChannels << endl;
 	cout << "The depth of the image is: " << imgDepth << endl;
 	cout << "The imageSize of the image is: " << imgSize << endl;
 	cout << "The widthStep of the image is:" << imgWidthStep << endl;
+	cout << "*********************************************************************" << endl;
 }
 
 void CDIP::ShowImage()
@@ -70,9 +72,17 @@ void CDIP::ShowImage(const char* windowName,
 										 int depth,
 								 		 int channels)
 {
-	IplImage* tmpImg;
+	IplImage* tmpImg = NULL;
 	tmpImg = cvCreateImage(cvSize(width,height),depth,channels);
 	tmpImg -> imageData = (char*)matrix;
+	/*cout << "+++++++++++++++++ The Data of tmpImg,as shown below: ++++++++++++++++" << endl;
+	cout << "The height of the tmpImg is:" << tmpImg -> height << endl;
+	cout << "The width of the tmpImg is:" << tmpImg -> width << endl;
+	cout << "The channels of the tmpImg is:" << tmpImg -> nChannels<< endl;
+	cout << "The depth of the tmpImg is: " << tmpImg -> depth << endl;
+	cout << "The imageSize of the tmpImg is: " << tmpImg -> imageSize << endl;
+	cout << "The widthStep of the tmpImg is:" << tmpImg -> widthStep << endl;
+	cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;*/
 	cvNamedWindow(windowName,0);
 	cvShowImage(windowName,tmpImg);
 	cvWaitKey(0);
@@ -132,6 +142,14 @@ void CDIP::GetGrayImage()
 			}
 		}
 	}	
+	ShowImage("GrayImg",
+						imgGrayMat,
+						imgHeight,
+						imgWidth);
+	WriteTxt<uchar>("/home/wangli/Limage/imgGrayMat.txt",
+									imgGrayMat,
+									imgHeight,
+									imgWidth);
 }
 
 void CDIP::FlipMat(uchar* matrix_out,
@@ -154,22 +172,18 @@ void CDIP::FlipMat(uchar* matrix_out,
 		cout << "The input parameters error!" << endl;
 		return;
 	}
-
+	//Flip vertical
 	for(i = 0;i < eqH;i++)
 	{
 		memcpy(tmpMat + i * width,matrix + (eqH - (i + 1)) * width,width);
 	}
-	memcpy(tmpMat + eqH * width,matrix,imgHeight * width);
-	for(i = imgHeight + eqH;i < imgHeight + 2 * eqH;i++)
+	memcpy(tmpMat + eqH * width,matrix,height * width);
+	for(i = height + eqH;i < height + 2 * eqH;i++)
 	{
-		memcpy(tmpMat + i * width,matrix + (imgHeight - (i - imgHeight - eqH + 1)) * width,width);
+		memcpy(tmpMat + i * width,matrix + (height - (i - height - eqH + 1)) * width,width);
 	}
-	/*WriteTxt<uchar>("/home/wangli/Limage/UpDown.txt",
-									tmpMat,
-									height + 2 * eqH,
-									width);*/
-	
-	for(i = 0;i < imgHeight + 2 * eqH;i++)
+	//Flip horizontal
+	for(i = 0;i < height + 2 * eqH;i++)
 	{								
 		for(j = 0;j < (width + 2 * eqW);j++)
 		{
@@ -187,14 +201,11 @@ void CDIP::FlipMat(uchar* matrix_out,
 			}
 		}
 	}
-	ShowImage("FlippedImage",
+
+	/*ShowImage("FlipMatImg",
 						matrix_out,
-						height + 2 * eqH,
-						width + 2 * eqW);
-	WriteTxt<uchar>("/home/wangli/Limage/flippedMat.txt",
-									matrix_out,
-									height + 2 * eqH,
-									width + 2 * eqW);
+						(height + 2 * eqH),
+						(width + 2 * eqW));*/
 
 	delete tmpMat;
 	tmpMat = NULL;
