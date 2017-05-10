@@ -1,8 +1,9 @@
-#include<stdio.h>
-#include<iostream>
+#include <stdio.h>
+#include <iostream>
 
-#include"CDIP.h"
-#include"CEdgeDete.h"
+#include "CDIP.h"
+#include "CEdgeDete.h"
+#include "CExtrFeature.h"
 
 using namespace std;
 

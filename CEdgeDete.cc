@@ -1,7 +1,7 @@
-#include"CEdgeDete.h"
-#include<stdio.h>
-#include<iostream>
-#include<math.h>
+#include "CEdgeDete.h"
+#include <stdio.h>
+#include <iostream>
+#include <math.h>
 
 CEdgeDete::CEdgeDete()
 {
@@ -260,8 +260,18 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 {
 	int tmp;
 	uchar* gaussianMat;
+	uchar* flippedMat;
+	uchar* Gx;
+	uchar* Gy;
+	double* Gxy;
+	double* Axy;
 
 	gaussianMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	Gx = new uchar[MAXHEIGHT * MAXWIDTH];
+	Gy = new uchar[MAXHEIGHT * MAXWIDTH];
+	Gxy = new double[MAXHEIGHT * MAXWIDTH];
+	Axy = new double[MAXHEIGHT * MAXWIDTH];
 
 	memset(matrix_out,0,MAXHEIGHT * MAXWIDTH);
 
@@ -282,6 +292,23 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 							 filterW,
 							 sigma);
 
+	//Calculate the image gradient,moreovre,calculate the edge amplitude and angle according to the gradient.
+	FlipMat(flippedMat,
+				  gaussianMat,
+					height,
+					width,
+					3,
+					3);
+	for(int i = 0;i < height;i++)
+	{
+		for(int j = 0;j < width;j++)
+		{
+			Gx[i * width + j] = flippedMat[i * (width + 2) + (j + 2)] - flippedMat[i * (width + 2) + j];
+			Gy[i * width + j] = flippedMat[(i + 2) * (width + 2) + j] - flippedMat[i * (width + 2) + j];
+			Gxy[i * width + j] = sqrt(SQUARE(Gx[i * width + j]) + SQUARE(Gy[i * width + j]));
+		}
+	}
+
 	ShowImage("CannyEdgeDeteImg",
 						matrix_out,
 						height,
@@ -292,7 +319,17 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 									width);
 
 	delete gaussianMat;
+	delete flippedMat;
+	delete Gx;
+	delete Gy;
+	delete Gxy;
+	delete Axy;
 	gaussianMat = NULL;
+	flippedMat = NULL;
+	Gx = NULL;
+	Gy = NULL;
+	Gxy = NULL;
+	Axy = NULL;
 }
 
 

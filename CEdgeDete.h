@@ -8,7 +8,7 @@
 #define MAXVALUE(value_a,value_b) (value_a > value_b ? value_a : value_b)
 #define MINVALUE(value_a,value_b) (value_a < value_b ? value_a : value_b)
 
-#include"CDIP.h"
+#include "CDIP.h"
 
 class CEdgeDete:public CDIP
 {
