@@ -265,6 +265,9 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 	uchar* Gy;
 	double* Gxy;
 	double* Axy;
+	double alpha;
+	double scale;
+	double tmp1,tmp2;
 
 	gaussianMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
@@ -303,12 +306,70 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 	{
 		for(int j = 0;j < width;j++)
 		{
-			Gx[i * width + j] = flippedMat[i * (width + 2) + (j + 2)] - flippedMat[i * (width + 2) + j];
-			Gy[i * width + j] = flippedMat[(i + 2) * (width + 2) + j] - flippedMat[i * (width + 2) + j];
+			Gx[i * width + j] = (flippedMat[i * (width + 2) + (j + 2)] - flippedMat[i * (width + 2) + j]) / 2;
+			Gy[i * width + j] = (flippedMat[(i + 2) * (width + 2) + j] - flippedMat[i * (width + 2) + j]) / 2;
 			Gxy[i * width + j] = sqrt(SQUARE(Gx[i * width + j]) + SQUARE(Gy[i * width + j]));
+			Axy[i * width + j] = (atan2(Gy[i * width + j],Gx[i * width + j]) / PI) * 180;
+			if(Axy[i * width + j] < 0)
+			{
+				Axy[i * width + j] = Axy[i * width + j] + 180;
+				alpha = (Axy[i * width + j] / 180);
+			}
+			if(alpha < 45)
+			{
+				scale = tan(alpha);
+				tmp1 = (double)(((double)(flippedMat[i * (width + 2) + j + 2] - flippedMat[(i + 1) * (width + 2) + j + 2])) * scale +
+							 flippedMat[(i + 1) * (width + 2) + j + 2]);
+				tmp2 = (double)(((double)(flippedMat[(i + 2) * (width + 2) + j] - flippedMat[(i + 1) * (width + 2) + j])) * scale +
+							 flippedMat[(i + 1) * (width + 2) + j]);
+				if(tmp1 > gaussianMat[i * width + j] || tmp2 > gaussianMat[i * width + j])
+				{
+					gaussianMat[i * width + j] = 0;
+				}
+			}
+			else if(alpha >= 45 && alpha < 90)
+			{
+				scale = tan(alpha);
+				tmp1 = (double)(((double)(flippedMat[i * (width + 2) + j + 2] - flippedMat[i * (width + 2) + j + 1])) * scale +
+							 flippedMat[i * (width + 2) + j + 1]);
+				tmp2 = (double)(((double)(flippedMat[(i + 2) * (width + 2) + j + 1] - flippedMat[(i + 2) * (width + 2) + j])) * scale +
+							 flippedMat[(i + 2) * (width + 2) + j]);
+				if(tmp1 > gaussianMat[i * width + j] || tmp2 > gaussianMat[i * width + j])
+				{
+					gaussianMat[i * width + j] = 0;
+				}
+			}
+			else if(alpha >= 90)
+			{
+				scale = tan((alpha - 90));
+				tmp1 = (double)(((double)(flippedMat[i * (width + 2) + j + 1] - flippedMat[i * (width + 2) + j])) * scale +
+							 flippedMat[i * (width + 2) + j]);
+				tmp2 = (double)(((double)(flippedMat[(i + 2) * (width + 2) + j + 2] - flippedMat[(i + 2) * (width + 2) + j + 1])) * scale +
+							 flippedMat[(i + 2) * (width + 2) + j + 1]);
+				if(tmp1 > gaussianMat[i * width + j] || tmp2 > gaussianMat[i * width + j])
+				{
+					gaussianMat[i * width + j] = 0;
+				}
+			}
+			else
+			{
+				scale = tan((180 - alpha));
+				tmp1 = (double)(((double)(flippedMat[(i + 1) * (width + 2) + j] - flippedMat[i * (width + 2) + j])) * scale +
+							 flippedMat[i * (width + 2) + j]);
+				tmp2 = (double)(((double)(flippedMat[(i + 2) * (width + 2) + j + 2] - flippedMat[(i + 1) * (width + 2) + j + 2])) * scale +
+							 flippedMat[(i + 1) * (width + 2) + j + 2]);
+				if(tmp1 > gaussianMat[i * width + j] || tmp2 > gaussianMat[i * width + j])
+				{
+					gaussianMat[i * width + j] = 0;
+				}
+			}
 		}
 	}
 
+	ShowImage("NMSImg",
+						gaussianMat,
+						height,
+						width);
 	ShowImage("CannyEdgeDeteImg",
 						matrix_out,
 						height,
