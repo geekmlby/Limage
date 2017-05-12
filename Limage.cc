@@ -11,7 +11,7 @@ int main(int argc,char* argv[])
 {
   CEdgeDete edgeDete;
 	//char path[PATHSIZE] = "/home/wangli/Limage/img/testArray4_7.bmp";
-  char path[PATHSIZE] = "/home/wangli/Limage/img/lena_salt.bmp";
+  char path[PATHSIZE] = "/home/wangli/Limage/img/lena.bmp";
   /*cout << "Please input path:" << endl;   
   cin.get(path,100);*/
 	edgeDete.ReadImage(path);
@@ -35,8 +35,8 @@ int main(int argc,char* argv[])
 												 edgeDete.imgWidth,
 												 7,
 												 11,
-												 200,
-												 100,
+												 120,
+												 50,
 												 1.5);
 	
   return 0;

@@ -261,6 +261,8 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 	int tmp;
 	uchar* gaussianMat;
 	uchar* flippedMat;
+	uchar* flippedMat2;
+	uchar* tmpArray;
 	uchar* Gx;
 	uchar* Gy;
 	double* Gxy;
@@ -271,6 +273,8 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 
 	gaussianMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	flippedMat2 = new uchar[MAXHEIGHT * MAXWIDTH];
+	tmpArray = new uchar[3 * 3];
 	Gx = new uchar[MAXHEIGHT * MAXWIDTH];
 	Gy = new uchar[MAXHEIGHT * MAXWIDTH];
 	Gxy = new double[MAXHEIGHT * MAXWIDTH];
@@ -365,11 +369,50 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 			}
 		}
 	}
-
 	ShowImage("NMSImg",
 						gaussianMat,
 						height,
 						width);
+	FlipMat(flippedMat2,
+				  gaussianMat,
+					height,
+					width,
+					3,
+					3);
+	for(int i = 0;i < height;i++)
+	{
+		for(int j = 0;j < width;j++)
+		{
+			if(gaussianMat[i * width + j] >= upThresold)
+			{
+				matrix_out[i * width + j] = 255;
+			}
+			else if(gaussianMat[i * width + j] < upThresold && gaussianMat[i * width + j] >= downThresold)
+			{
+				for(int w = i;w < i + 2;w++)
+				{
+					for(int l = j;l < j + 2;l++)
+					{
+						for(int k = 0;k < 3 * 3;k++)
+						{
+							tmpArray[k] = flippedMat2[w * (width + 2) + l];
+						}
+					}
+				}
+				for(int k = 0;k < 3 * 3;k++)
+				{
+					if(tmpArray[k] >= upThresold)
+					{
+						matrix_out[i * width + j] = 255;
+					}
+				}
+			}
+			else
+			{
+				matrix_out[i * width + j] = 0;
+			}
+		}
+	}
 	ShowImage("CannyEdgeDeteImg",
 						matrix_out,
 						height,
@@ -381,16 +424,20 @@ void CEdgeDete::CannyEdgeDete(uchar* matrix_out,
 
 	delete gaussianMat;
 	delete flippedMat;
+	delete flippedMat2;
+	delete tmpArray;
 	delete Gx;
 	delete Gy;
 	delete Gxy;
 	delete Axy;
 	gaussianMat = NULL;
 	flippedMat = NULL;
+	flippedMat2 = NULL;
 	Gx = NULL;
 	Gy = NULL;
 	Gxy = NULL;
 	Axy = NULL;
+	tmpArray = NULL;
 }
 
 
