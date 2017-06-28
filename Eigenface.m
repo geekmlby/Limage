@@ -1,94 +1,97 @@
 close all;clear all;clc;
 
 disp('------------------------------Train------------------------------')
-filePath = 'E:\Eigenface\train\';
-fileExt = '*.bmp';
-files = dir(fullfile(filePath,fileExt));
-len = size(files,1);
+trainImgPath = 'E:\Eigenface\train\';
+trainImgExt = '*.bmp';
+trainImgs = dir(fullfile(trainImgPath,trainImgExt));
+trainImgsNum = size(trainImgs,1);
 defaultW = 92;
 defaultH = 112;
-faceMat = zeros(defaultH * defaultW,len);
-label = zeros(1,len);
-% Read face images and convert to "defaultH * defaultW" dimensionals column vectors,
-% moreover, save them in the 'faceData'.
-for i = 1:len
-    fileFullName = strcat(filePath,files(i).name);
-    srcImg = imread(fileFullName);
-    disp(['----------',fileFullName,'----------'])
-    srcImgFigHandle = figure(1);
-    set(srcImgFigHandle,'name','srcImg','Numbertitle','off');
+trainImgsLabel = zeros(1,trainImgsNum);
+faceDataMat = zeros(defaultH * defaultW,trainImgsNum);
+
+% Read train images and convert to "defaultH * defaultW" dimensionals column vectors,
+% moreover, save them in the 'faceDataMat' matrix.
+for i = 1:trainImgsNum
+    trainImgFullName = strcat(trainImgPath,trainImgs(i).name);
+    trainImg = imread(trainImgFullName);
+    disp(['----------',trainImgFullName,'----------'])
+    trainImgFigHandle = figure(1);
+    set(trainImgFigHandle,'name','trainImg','Numbertitle','off');
     subplot(4,10,i);
-    imshow(uint8(srcImg),[]);
-    faceMat(:,i) = reshape(srcImg,defaultH * defaultW,1);
-    label(1,i) = str2double(files(i).name((strfind(files(i).name,'_') + 2):(strfind(files(i).name,'.') - 1)));
+    imshow(uint8(trainImg),[]);
+    trainImgsLabel(1,i) = str2double(trainImgs(i).name((strfind(trainImgs(i).name,'_') + 2):(strfind(trainImgs(i).name,'.') - 1)));
+    faceDataMat(:,i) = reshape(trainImg,defaultH * defaultW,1);
 end
-averFaceVec = sum(faceMat,2) / len;
+
+averFaceVec = sum(faceDataMat,2) / trainImgsNum;
 averFaceImg = reshape(averFaceVec,defaultH,defaultW);
 averFaceImgFigHandle = figure(2);
 set(averFaceImgFigHandle,'name','averFace','Numbertitle','off');
 imshow(uint8(averFaceImg),[]);
-diffMat = faceMat - repmat(averFaceVec,1,len);
+diffMat = faceDataMat - repmat(averFaceVec,1,trainImgsNum);
 
+% Calculate the covariance matrix.
 covMat = (diffMat' * diffMat);
-[eigVecMat,~] = eig(covMat);
-eigVal = eig(covMat);
-[sortedEigVal,index]= sort(eigVal,'descend');
-sortedEigVecMat=eigVecMat(:,index);
-finalEigVecMat = diffMat * sortedEigVecMat;
-for i = 1:len
-    feaFaceFigHandle = figure(3);
-    set(feaFaceFigHandle,'name','feaFace','Numbertitle','off');
+[eigenVecMat,~] = eig(covMat);
+eigenValVec = eig(covMat);
+[sortedEigenValVec,eigenValIndex]= sort(eigenValVec,'descend');
+sortedEigenVecMat=eigenVecMat(:,eigenValIndex);
+finalEigenVecMat = diffMat * sortedEigenVecMat;
+for i = 1:trainImgsNum
+    eigenFaceFigHandle = figure(3);
+    set(eigenFaceFigHandle,'name','feaFace','Numbertitle','off');
     subplot(4,10,i);
-    imshow(uint8(reshape(finalEigVecMat(:,i),defaultH,defaultW)),[]);
+    imshow(uint8(reshape(finalEigenVecMat(:,i),defaultH,defaultW)),[]);
 end
-finalEigVecMat = finalEigVecMat(:,1 : find(sortedEigVal < 1) - 1);
-% reduDimMat is the matrix after reducing the dimensionality.
-reduDimMat = finalEigVecMat' * diffMat;
+finalEigenVecMat = finalEigenVecMat(:,1 : find(sortedEigenValVec < 1) - 1);
+% 'reduDimDataMat' is the matrix after reducing the dimensionality.
+reduDimDataMat = finalEigenVecMat' * diffMat;
 
 disp('------------------------------Test------------------------------')
-testPath = 'E:\Eigenface\test\';
-subFolders = dir(testPath);
-foldersLen = size(subFolders,1);
-corrNum = 0;
-testNum = 0;
-for i = 3:foldersLen
-    subFolder = [testPath,subFolders(i).name];
+testImgPath = 'E:\Eigenface\test\';
+subFolders = dir(testImgPath);
+subFoldersNum = size(subFolders,1);
+testImgsSum = 0;
+corrImgsNum = 0;
+for i = 3:subFoldersNum
+    subFolder = [testImgPath,subFolders(i).name];
     disp(['----------',subFolder,'----------'])
-    testFiles = dir([subFolder,'\*.bmp']);
-    testFilesLen = size(testFiles,1);
-    testNum = testNum + testFilesLen;
-    testLabel = str2double(subFolders(i).name((strfind(subFolders(i).name,'s') + 1):end));
-    for j = 1:testFilesLen
-        disp(['----------',testFiles(j).name,'----------'])
-        testFullPath = strcat(subFolder,'\',testFiles(j).name);
-        testImg = imread(testFullPath);
-        testFaceVec = reshape(testImg,defaultH * defaultW,1);
-        testDiffVec = double(testFaceVec) - averFaceVec;
-        testEigVec = finalEigVecMat' * testDiffVec;
+    testImgs = dir([subFolder,'\*.bmp']);
+    testImgsNum = size(testImgs,1);
+    testImgsSum = testImgsSum + testImgsNum;
+    testImgLabel = str2double(subFolders(i).name((strfind(subFolders(i).name,'s') + 1):end));
+    for j = 1:testImgsNum
+        disp(['----------',testImgs(j).name,'----------'])
+        testImgFullPath = strcat(subFolder,'\',testImgs(j).name);
+        testImg = imread(testImgFullPath);
+        testImgVec = reshape(testImg,defaultH * defaultW,1);
+        testDiffVec = double(testImgVec) - averFaceVec;
+        testEigenVec = finalEigenVecMat' * testDiffVec;
         
-        testSum = 0;
-        testMin = 0;
-        testIndex = 1;
-        for w = 1:len
-            for l = 1 : (find(sortedEigVal < 1) - 1)
-                testSum = testSum + (testEigVec(l) - reduDimMat(l,w)).^2;
+        sumV = 0;
+        minV = 0;
+        minIndex = 1;
+        for w = 1:trainImgsNum
+            for l = 1 : (find(sortedEigenValVec < 1) - 1)
+                sumV = sumV + (testEigenVec(l) - reduDimDataMat(l,w)).^2;
                 if(w == 1)
-                    testMin = testSum;
+                    minV = sumV;
                 end
             end
-            if(testMin > testSum)
-                testMin = testSum;
-                testIndex = w;
+            if(minV > sumV)
+                minV = sumV;
+                minIndex = w;
             end
-            testSum = 0;
+            sumV = 0;
         end
-            if testLabel == label(1,testIndex)
-                corrNum = corrNum + 1;
+            if testImgLabel == trainImgsLabel(1,minIndex)
+                corrImgsNum = corrImgsNum + 1;
             end
     end
 end
 
-percent = corrNum / testNum;
+corrPerc = corrImgsNum / testImgsSum;
 
 
 
