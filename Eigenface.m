@@ -37,7 +37,8 @@ covMat = (diffMat' * diffMat);
 eigenValVec = eig(covMat);
 [sortedEigenValVec,eigenValIndex]= sort(eigenValVec,'descend');
 sortedEigenVecMat=eigenVecMat(:,eigenValIndex);
-finalEigenVecMat = diffMat * sortedEigenVecMat;
+SchOrthMat = SchOrth(sortedEigenVecMat);
+finalEigenVecMat = diffMat * SchOrthMat;
 for i = 1:trainImgsNum
     eigenFaceFigHandle = figure(3);
     set(eigenFaceFigHandle,'name','feaFace','Numbertitle','off');
@@ -70,22 +71,23 @@ for i = 3:subFoldersNum
         testEigenVec = finalEigenVecMat' * testDiffVec;
         
         sumV = 0;
-        minV = 0;
-        minIndex = 1;
+        maxV = 0;
+        maxIndex = 1;
         for w = 1:trainImgsNum
             for l = 1 : (find(sortedEigenValVec < 1) - 1)
-                sumV = sumV + (testEigenVec(l) - reduDimDataMat(l,w)).^2;
+%                 sumV = sumV + (testEigenVec(l) - reduDimDataMat(l,w)).^2;
+                sumV = sumV + testEigenVec(l).^2;
                 if(w == 1)
-                    minV = sumV;
+                    maxV = sumV;
                 end
             end
-            if(minV > sumV)
-                minV = sumV;
-                minIndex = w;
+            if(maxV < sumV)
+                maxV = sumV;
+                maxIndex = w;
             end
             sumV = 0;
         end
-            if testImgLabel == trainImgsLabel(1,minIndex)
+            if testImgLabel == trainImgsLabel(1,maxIndex)
                 corrImgsNum = corrImgsNum + 1;
             end
     end
