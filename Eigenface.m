@@ -37,7 +37,7 @@ covMat = (diffMat' * diffMat);
 eigenValVec = eig(covMat);
 [sortedEigenValVec,eigenValIndex]= sort(eigenValVec,'descend');
 sortedEigenVecMat=eigenVecMat(:,eigenValIndex);
-finalEigenVecMat = SchOrth(diffMat * sortedEigenVecMat);
+finalEigenVecMat = diffMat * sortedEigenVecMat;
 for i = 1:trainImgsNum
     eigenFaceFigHandle = figure(3);
     set(eigenFaceFigHandle,'name','feaFace','Numbertitle','off');
@@ -45,6 +45,7 @@ for i = 1:trainImgsNum
     imshow(uint8(reshape(finalEigenVecMat(:,i),defaultH,defaultW)),[]);
 end
 finalEigenVecMat = finalEigenVecMat(:,1 : find(sortedEigenValVec < 1) - 1);
+finalEigenVecMat = SchOrth(finalEigenVecMat);
 % 'reduDimDataMat' is the matrix after reducing the dimensionality.
 reduDimDataMat = finalEigenVecMat' * diffMat;
 
@@ -88,6 +89,17 @@ for i = 3:subFoldersNum
         if testImgLabel == trainImgsLabel(1,minIndex)
             corrImgsNum = corrImgsNum + 1;
         end
+        compFigHandle = figure(4);
+        set(compFigHandle,'name','compare','Numbertitle','off');
+        subplot(1,2,1);
+        imshow(uint8(testImg),[]);
+        title(testImgFullPath);
+        compImgFullName = strcat(trainImgPath,trainImgs(minIndex).name);
+        compImg = imread(compImgFullName);
+        subplot(1,2,2);
+        imshow(uint8(compImg),[]);
+        title(compImgFullName);
+        pause(1);
     end
 end
 
