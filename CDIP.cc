@@ -19,7 +19,7 @@ CDIP::CDIP()
 
 CDIP::~CDIP()
 {
-	puc_imgData = NULL;     //注：puc_imgData没有使用关键字new在堆上动态创建一个对象，所以不需要delete。
+	puc_imgData = NULL;     //puc_imgData没有使用关键字new在堆上动态创建一个对象，所以不需要delete。
 	cvReleaseImage(&pImg_src);
 }
 
@@ -28,6 +28,7 @@ void CDIP::ReadImage(char* path)
 	pImg_src = cvLoadImage(path,-1);
 	imgH = pImg_src -> height;
 	imgW = pImg_src -> width;
+	actW = (0 == imgW % 4) ? imgW : imgW + (4 - imgW % 4);     //计算图像的实际宽度，非常重要。
 	imgChannel = pImg_src -> nChannels;
 	imgDepth = pImg_src -> depth;
 	imgSize = pImg_src -> imageSize;
@@ -59,14 +60,13 @@ void CDIP::ShowImage()
 }
 
 void CDIP::ShowImage(const char* windowName,
-					 uchar* Matrix,     //注：为了避免和OpenCV中的Mat类重名，用Matrix。
+					 uchar* Matrix,     //为了避免和OpenCV中的Mat类重名，用Matrix。
 					 int h,
 					 int w,
 					 int depth,
 					 int channel)
 {
-	IplImage* pImg_tmp = NULL;
-	pImg_tmp = cvCreateImage(cvSize(w,h),depth,channel);
+	IplImage* pImg_tmp = cvCreateImage(cvSize(w,h),depth,channel);
 	pImg_tmp -> imageData = (char*)Matrix;
 	cout << "+++++++++++++++++ The Data of tmpImg,as shown below: ++++++++++++++++" << endl;
 	cout << "The h of the tmpImg is:" << pImg_tmp -> height << endl;
@@ -87,13 +87,16 @@ void CDIP::GetRGBImage(uchar* RMat,
 					   uchar* GMat,
 					   uchar* BMat)
 {
+	memset(RMat,0,MAXHEIGHT * MAXWIDTH);
+	memset(GMat,0,MAXHEIGHT * MAXWIDTH);
+	memset(BMat,0,MAXHEIGHT * MAXWIDTH);
 	for(int i = 0;i < imgH;i++)
 	{
 		for(int j = 0;j < imgW;j++)
 		{
-			BMat[i * imgW + j] = puc_imgData[i * imgWidthStep + j * imgChannel + 0];
-			GMat[i * imgW + j] = puc_imgData[i * imgWidthStep + j * imgChannel + 1];
-			RMat[i * imgW + j] = puc_imgData[i * imgWidthStep + j * imgChannel + 2];
+			BMat[i * actW + j] = puc_imgData[i * imgWidthStep + j * imgChannel + 0];
+			GMat[i * actW + j] = puc_imgData[i * imgWidthStep + j * imgChannel + 1];
+			RMat[i * actW + j] = puc_imgData[i * imgWidthStep + j * imgChannel + 2];
 		}
 	}
 }
@@ -103,25 +106,23 @@ void CDIP::GetGrayImage(uchar* GrayMat)
 	uchar* puc_TmpRMat = new uchar[MAXHEIGHT * MAXWIDTH];	
 	uchar* puc_TmpGMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	uchar* puc_TmpBMat = new uchar[MAXHEIGHT * MAXWIDTH];
-
 	double grayValueSum;
 	int pos;
 
+	memset(GrayMat,0,MAXHEIGHT * MAXWIDTH);
 	if(3 == imgChannel)
 	{
-		
 		GetRGBImage(puc_TmpRMat,
 					puc_TmpGMat,
 					puc_TmpBMat);
-		
 		for(int i = 0;i < imgH;i++)
 		{
-			for(int j = 0;j < imgW;j++)
+			for(int j = 0;j < actW;j++)
 			{
-				grayValueSum = 2989 * puc_TmpRMat[i * imgW + j] +
-							   5866 * puc_TmpGMat[i * imgW + j] +
-							   1145 * puc_TmpBMat[i * imgW + j];
-				GrayMat[i * imgW + j] = (int)(grayValueSum / 10000);
+				grayValueSum = 2989 * puc_TmpRMat[i * actW + j] +
+							   5866 * puc_TmpGMat[i * actW + j] +
+							   1145 * puc_TmpBMat[i * actW + j];
+				GrayMat[i * actW + j] = (int)(grayValueSum / 10000);
  			}
 		}
 	}
@@ -131,7 +132,7 @@ void CDIP::GetGrayImage(uchar* GrayMat)
 		{
 			for(int j = 0;j < imgW;j++)
 			{
-				GrayMat[i * imgW + j] = puc_imgData[i * imgWidthStep + j];
+				GrayMat[i * actW + j] = puc_imgData[i * imgWidthStep + j];
 			}
 		}
 	}	
@@ -144,79 +145,21 @@ void CDIP::GetGrayImage(uchar* GrayMat)
 	puc_TmpBMat = NULL;
 }
 
-void CDIP::FlipMat(uchar* Mat_out,
-				   uchar* Matrix,
-				   int h,
-				   int w,
-				   int filterH,     //滤波器的高，全尺寸。
-				   int filterW)     //滤波器的宽，全尺寸。
-{
-	int i,j;
-	int eqH,eqW;
-	uchar* puc_tmpMat = NULL;
-
-	eqH = filterH / 2;
-	eqW = filterW / 2;
-	puc_tmpMat = new uchar[MAXHEIGHT * MAXWIDTH];
-
-	if(h <= 0 || w <= 0 || eqH > h || eqW > w)
-	{
-		cout << "The input parameters error!" << endl;
-		return;
-	}
-
-	//Flip vertical
-	for(i = 0;i < eqH;i++)
-	{
-		memcpy(puc_tmpMat + i * w,Matrix + (eqH - (i + 1)) * w,w);
-	}
-	memcpy(puc_tmpMat + eqH * w,Matrix,h * w);
-	for(i = h + eqH;i < h + 2 * eqH;i++)
-	{
-		memcpy(puc_tmpMat + i * w,Matrix + (h - (i - h - eqH + 1)) * w,w);
-	}
-	//Flip horizontal
-	for(i = 0;i < h + 2 * eqH;i++)
-	{								
-		for(j = 0;j < (w + 2 * eqW);j++)
-		{
-			if(j < eqW)
-			{
-			    Mat_out[i * (w + 2 * eqW) + j] = puc_tmpMat[i * w + (eqW - (j + 1))];
-			}
-			else if(j >= w + eqW)
-			{
-				Mat_out[i * (w + 2 * eqW) + j] = puc_tmpMat[i * w + (w - (j - w - eqW + 1))];
-			}
-			else
-			{
-				Mat_out[i * (w + 2 * eqW) + j] = puc_tmpMat[i * w + (j - eqW)];
-			}
-		}
-	}
-
-	delete puc_tmpMat;
-	puc_tmpMat = NULL;
-}
-
-void CDIP::EdgeDete_Sobel(uchar* Mat_out,
-						  uchar* Matrix,
+void CDIP::EdgeDete_Sobel(uchar* Matrix,
 						  int h,
 						  int w,
 						  int thre)
 {
 	int tmp;
-	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];;
+	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
 	int conv_Gx,conv_Gy;
 
-	memset(Mat_out,0,MAXHEIGHT * MAXWIDTH);
 	FlipMat(puc_flippedMat,
 			Matrix,
 			h,
 			w,
 			3,
 			3);
-
 	for(int i = 1;i < h + 1;i++)
 	{
 		for(int j = 1;j < w + 1;j++)
@@ -231,8 +174,13 @@ void CDIP::EdgeDete_Sobel(uchar* Mat_out,
 			tmp = sqrt(SQUAREV(conv_Gx) + SQUAREV(conv_Gy));
 			if(tmp > thre)
 			{
-				Mat_out[(i - 1) * w + (j - 1)] = 255;
+				Matrix[(i - 1) * w + (j - 1)] = 255;
 			}
+			else
+			{
+				Matrix[(i - 1) * w + (j - 1)] = 0;
+			}
+	
 		}
 	}
 
@@ -240,27 +188,24 @@ void CDIP::EdgeDete_Sobel(uchar* Mat_out,
 	puc_flippedMat = NULL;
 }
 
-void CDIP::EdgeDete_Laplace(uchar* Mat_out,
-						    uchar* Matrix,
+void CDIP::EdgeDete_Laplace(uchar* Matrix,
 						    int h,
 						    int w,
 						    int thre)
 {
-	double maxValue,minValue;
-	double* tmpArray;
+	int maxValue,minValue;
+	int tmp;
+	int* tmpArray = new int[MAXHEIGHT * MAXWIDTH];
 	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+
 	maxValue = 0;
 	minValue = 0;
-	tmpArray = new double[MAXHEIGHT * MAXWIDTH];
-
-	memset(Mat_out,0,MAXHEIGHT * MAXWIDTH);
 	FlipMat(puc_flippedMat,
 			Matrix,
 			h,
 			w,
 			3,
 			3);
-
 	for(int i = 1;i < h + 1;i++)
 	{
 		for(int j = 1;j < w + 1;j++)
@@ -268,7 +213,6 @@ void CDIP::EdgeDete_Laplace(uchar* Mat_out,
 			tmpArray[(i - 1) * w + (j - 1)] = puc_flippedMat[(i - 1) * (w + 2) + j] + puc_flippedMat[i * (w + 2) + (j - 1)] + 
 											  puc_flippedMat[i * (w + 2) + (j + 1)] + puc_flippedMat[(i + 1) * (w + 2) + j] - 
 											  4 * puc_flippedMat[i * (w + 2) + j];
-
 			maxValue = MAXV(tmpArray[(i - 1) * w + (j - 1)],maxValue);
 			minValue = MINV(tmpArray[(i - 1) * w + (j - 1)],minValue);
 		}
@@ -277,14 +221,16 @@ void CDIP::EdgeDete_Laplace(uchar* Mat_out,
 	{
 		for(int j = 0;j < w;j++)
 		{
-			Mat_out[i * w + j] = ((tmpArray[i * w + j] - minValue) / (maxValue - minValue)) * 255;
-			if(Mat_out[i * w + j] > thre)
+			tmp = ((double)(tmpArray[i * w + j] - minValue)) / (maxValue - minValue) * 255;   //两个int整数相除，因为C++数学运算的特性，
+																							  //当分母大于分子的时候，为0。
+																							  //所以要转换成double。	
+			if( tmp > thre)
 			{
-				Mat_out[i * w + j] = 255;
+				Matrix[i * w + j] = 255;
 			}
 			else
 			{
-				Mat_out[i * w + j] = 0;
+				Matrix[i * w + j] = 0;
 			}
 		}
 	}
@@ -295,249 +241,63 @@ void CDIP::EdgeDete_Laplace(uchar* Mat_out,
 	tmpArray = NULL;
 }
 
-void CDIP::EdgeDete_Canny(uchar* Mat_out,
-						  uchar* Matrix,
-						  int h,
-						  int w,
-						  int filterH,
-						  int filterW,
-						  int upThresold,
-						  int downThresold,
-						  double sigma)
+void CDIP::GausBlur(uchar* Matrix,
+					int h,
+					int w,
+					int filH,
+					int filW,
+					double sigma)
 {
-	int tmp;
-	uchar* gaussianMat;
-	uchar* puc_flippedMat;
-	uchar* flippedMat2;
-	uchar* tmpArray;
-	uchar* Gx;
-	uchar* Gy;
-	double* Gxy;
-	double* Axy;
-	double alpha;
-	double scale;
-	double tmp1,tmp2;
+	int eqH,eqW;
+	double* WeiMat = new double[MAXLENGTH];
+	double sum;
 
-	gaussianMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	flippedMat2 = new uchar[MAXHEIGHT * MAXWIDTH];
-	tmpArray = new uchar[3 * 3];
-	Gx = new uchar[MAXHEIGHT * MAXWIDTH];
-	Gy = new uchar[MAXHEIGHT * MAXWIDTH];
-	Gxy = new double[MAXHEIGHT * MAXWIDTH];
-	Axy = new double[MAXHEIGHT * MAXWIDTH];
-
-	memset(Mat_out,0,MAXHEIGHT * MAXWIDTH);
-
-	if(upThresold < downThresold)
+	eqH = filH / 2;
+	eqW = filW / 2;
+	for(int x = (-1 * eqH);x < (eqH + 1);x++)
 	{
-		tmp = upThresold;
-		upThresold = downThresold;
-		downThresold = tmp; 
-	}
-
-	memset(gaussianMat,0,MAXHEIGHT * MAXWIDTH);
-
-	GaussianBlur(gaussianMat,
-				 Matrix,
-				 h,
-				 w,
-				 filterH,
-				 filterW,
-				 sigma);
-
-	//Calculate the image gradient,moreovre,calculate the edge amplitude and angle according to the gradient.
-	FlipMat(puc_flippedMat,
-		    gaussianMat,
-			h,
-			w,
-			3,
-			3);
-	for(int i = 0;i < h;i++)
-	{
-		for(int j = 0;j < w;j++)
+		for(int y = (-1 * eqW);y < (eqW + 1);y++)
 		{
-			Gx[i * w + j] = (puc_flippedMat[i * (w + 2) + (j + 2)] - puc_flippedMat[i * (w + 2) + j]) / 2;
-			Gy[i * w + j] = (puc_flippedMat[(i + 2) * (w + 2) + j] - puc_flippedMat[i * (w + 2) + j]) / 2;
-			Gxy[i * w + j] = sqrt(SQUAREV(Gx[i * w + j]) + SQUAREV(Gy[i * w + j]));
-			Axy[i * w + j] = (atan2(Gy[i * w + j],Gx[i * w + j]) / PI) * 180;
-			if(Axy[i * w + j] < 0)
-			{
-				Axy[i * w + j] = Axy[i * w + j] + 180;
-				alpha = (Axy[i * w + j] / 180);
-			}
-			if(alpha < 45)
-			{
-				scale = tan(alpha);
-				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 2] - puc_flippedMat[(i + 1) * (w + 2) + j + 2])) * scale +
-					   puc_flippedMat[(i + 1) * (w + 2) + j + 2]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j] - puc_flippedMat[(i + 1) * (w + 2) + j])) * scale +
-					   puc_flippedMat[(i + 1) * (w + 2) + j]);
-				if(tmp1 > gaussianMat[i * w + j] || tmp2 > gaussianMat[i * w + j])
-				{
-					gaussianMat[i * w + j] = 0;
-				}
-			}
-			else if(alpha >= 45 && alpha < 90)
-			{
-				scale = tan(alpha);
-				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 2] - puc_flippedMat[i * (w + 2) + j + 1])) * scale +
-					   puc_flippedMat[i * (w + 2) + j + 1]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 1] - puc_flippedMat[(i + 2) * (w + 2) + j])) * scale +
-					   puc_flippedMat[(i + 2) * (w + 2) + j]);
-				if(tmp1 > gaussianMat[i * w + j] || tmp2 > gaussianMat[i * w + j])
-				{
-					gaussianMat[i * w + j] = 0;
-				}
-			}
-			else if(alpha >= 90)
-			{
-				scale = tan((alpha - 90));
-				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 1] - puc_flippedMat[i * (w + 2) + j])) * scale +
-					   puc_flippedMat[i * (w + 2) + j]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 2] - puc_flippedMat[(i + 2) * (w + 2) + j + 1])) * scale 
-                       + puc_flippedMat[(i + 2) * (w + 2) + j + 1]);
-				if(tmp1 > gaussianMat[i * w + j] || tmp2 > gaussianMat[i * w + j])
-				{
-					gaussianMat[i * w + j] = 0;
-				}
-			}
-			else
-			{
-				scale = tan((180 - alpha));
-				tmp1 = (double)(((double)(puc_flippedMat[(i + 1) * (w + 2) + j] - puc_flippedMat[i * (w + 2) + j])) * scale +
-							 puc_flippedMat[i * (w + 2) + j]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 2] - puc_flippedMat[(i + 1) * (w + 2) + j + 2])) * scale                        + puc_flippedMat[(i + 1) * (w + 2) + j + 2]);
-				if(tmp1 > gaussianMat[i * w + j] || tmp2 > gaussianMat[i * w + j])
-				{
-					gaussianMat[i * w + j] = 0;
-				}
-			}
+			WeiMat[(x + eqH) * filW + (y + eqW)] = 
+            exp(-1 * (SQUAREV(x) + SQUAREV(y)) / (2 * SQUAREV(sigma))) / (2 * PI * SQUAREV(sigma));
+			sum = sum + WeiMat[(x + eqH) * filW + (y + eqW)];
 		}
 	}
-	ShowImage("NMSImg",
-			  gaussianMat,
-			  h,
-			  w);
-	FlipMat(flippedMat2,
-			gaussianMat,
+	for(int i = 0;i < (filH * filW);i++)
+	{
+		WeiMat[i] = WeiMat[i] / sum;
+	}
+	CalConv(Matrix,
+			WeiMat,
 			h,
 			w,
-			3,
-			3);
-	for(int i = 0;i < h;i++)
-	{
-		for(int j = 0;j < w;j++)
-		{
-			if(gaussianMat[i * w + j] >= upThresold)
-			{
-				Mat_out[i * w + j] = 255;
-			}
-			else if(gaussianMat[i * w + j] < upThresold && gaussianMat[i * w + j] >= downThresold)
-			{
-				for(int w = i;w < i + 2;w++)
-				{
-					for(int l = j;l < j + 2;l++)
-					{
-						for(int k = 0;k < 3 * 3;k++)
-						{
-							tmpArray[k] = flippedMat2[w * (w + 2) + l];
-						}
-					}
-				}
-				for(int k = 0;k < 3 * 3;k++)
-				{
-					if(tmpArray[k] >= upThresold)
-					{
-						Mat_out[i * w + j] = 255;
-					}
-				}
-			}
-			else
-			{
-				Mat_out[i * w + j] = 0;
-			}
-		}
-	}
-
-	delete gaussianMat;
-	delete puc_flippedMat;
-	delete flippedMat2;
-	delete tmpArray;
-	delete Gx;
-	delete Gy;
-	delete Gxy;
-	delete Axy;
-	gaussianMat = NULL;
-	puc_flippedMat = NULL;
-	flippedMat2 = NULL;
-	Gx = NULL;
-	Gy = NULL;
-	Gxy = NULL;
-	Axy = NULL;
-	tmpArray = NULL;
+			filH,
+			filW);
+	
+	delete WeiMat;
+	WeiMat = NULL;
 }
 
-void CDIP::GaussianBlur(uchar* Mat_out,
-						uchar* Matrix,
-						int h,
-						int w,
-						int filterH,
-						int filterW,
-						double sigma)
+void CDIP::CalConv(uchar* Matrix,     //因为计算卷积的时候，有可能输出负值，uchar数组中的数据会出现错误，所以这个函数要慎用。
+				   double* Wei,       //Wei都是正值的时候，可以用这个函数。
+                   int h,
+                   int w,
+                   int filH,
+                   int filW)
 {
+	double tmp = 0.0;
+	int eqH,eqW;
 	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	double* windowArray = new double[MAXLENGTH];
+	uchar* WinMat = new uchar[MAXLENGTH];
+	eqH = filH / 2;
+	eqW = filW / 2;
 
 	FlipMat(puc_flippedMat,
 			Matrix,
 			h,
 			w,
-			filterH,
-			filterW);
-	Calconv(Mat_out,
-			puc_flippedMat,
-			h,
-			w,
-			filterH,
-			filterW,
-			sigma);
-
-	delete puc_flippedMat;
-	delete windowArray;
-	puc_flippedMat = NULL;
-	windowArray = NULL;
-}
-
-void CDIP::Calconv(uchar* Mat_out,
-				   uchar* Matrix,
-				   int h,
-				   int w,
-				   int filterH,
-				   int filterW,
-				   double sigma)
-{
-	double tmp = 0.0;
-	int eqH,eqW;
-	double sum;
-	double* weightArray = new double[MAXLENGTH];
-	double* windowArray = new double[MAXLENGTH];
-	eqH = filterH / 2;
-	eqW = filterW / 2;
-
-	for(int x = (-1 * eqH);x < (eqH + 1);x++)
-	{
-		for(int y = (-1 * eqW);y < (eqW + 1);y++)
-		{
-			weightArray[(x + eqH) * filterW + (y + eqW)] = 
-            exp(-1 * (SQUAREV(x) + SQUAREV(y)) / (2 * SQUAREV(sigma))) / (2 * PI * SQUAREV(sigma));
-			sum = sum + weightArray[(x + eqH) * filterW + (y + eqW)];
-		}
-	}
-	for(int i = 0;i < (filterH * filterW);i++)
-	{
-		weightArray[i] = weightArray[i] / sum;
-	}
+			filH,
+			filW);
 	for(int i = eqH;i < h + eqH;i++)
 	{
 		for(int j = eqW;j < w + eqW;j++)
@@ -546,24 +306,49 @@ void CDIP::Calconv(uchar* Mat_out,
 			{
 				for(int y = (-1 * eqW);y < (eqW + 1);y++)
 				{
-					windowArray[(x + eqH) * filterW + (y + eqW)] = Matrix[(i + x) * (w + 2 * eqW) + (j + y)];
+					WinMat[(x + eqH) * filW + (y + eqW)] = puc_flippedMat[(i + x) * (w + 2 * eqW) + (j + y)];
 				}
 			}	
-			for(int k = 0;k < (filterH * filterW);k++)
+			for(int k = 0;k < (filH * filW);k++)
 			{
-				tmp += (windowArray[k] * weightArray[k]);
-				windowArray[k] = 0;
+				tmp += (WinMat[k] * Wei[k]);
+				WinMat[k] = 0;
 			}	
-			Mat_out[(i - eqH) * w + (j - eqW)] = (uchar)tmp;
+			Matrix[(i - eqH) * w + (j - eqW)] = tmp;
 			tmp = 0;
 		}
 	}
 
-	delete weightArray;
-	delete windowArray;
-	windowArray = NULL;
-	weightArray = NULL;
+	delete puc_flippedMat;
+	delete WinMat;
+	puc_flippedMat = NULL;
+	WinMat = NULL;		
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

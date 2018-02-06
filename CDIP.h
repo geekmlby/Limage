@@ -40,10 +40,10 @@ public:
     void GetGrayImage(uchar* GrayMat);
 
 	template<class type>
-	void WriteTxt(const char* txtName,
-		          type* Mat,
-		          int h,
-		          int w)
+	static void WriteTxt(const char* txtName,     //可以定义成静态函数，不用CDIP类对象，可以直接用类名调用。
+		          		 type* Mat,
+		          		 int h,
+		          		 int w)
 	{
         int i,j;
 		FILE* fp;
@@ -52,59 +52,96 @@ public:
 		{
 			for (j = 0;j < w;j++)
 			{
-				fprintf(fp,"%4d ",Mat[i * w + j]);     //注：因为“%d”，这个模板只适用于“int”，“char”和“uchar”。
+				fprintf(fp,"%4d ",Mat[i * w + j]);     //因为“%d”，这个模板只适用于“int”，“char”和“uchar”。
 			}
 			fprintf(fp,"\n");
 		}
 		fclose(fp);		
 	}
 
-	static void FlipMat(uchar* Mat_out,
-		         		uchar* Matrix,
-		         		int h,
-		         		int w,
-		         		int filterH,
-		         		int filterW);
+	template<class type>
+	static void FlipMat(type* Mat_out,
+						type* Matrix,
+						int h,
+						int w,
+						int filH,
+						int filW)
+	{
+		int i,j;
+		int eqH,eqW;
+		type* pty_tmpMat = NULL;
 
-    void EdgeDete_Sobel(uchar* Mat_out,
-                        uchar* Matrix,
+		eqH = filH / 2;
+		eqW = filW / 2;
+		pty_tmpMat = new type[MAXHEIGHT * MAXWIDTH];
+
+		if(h <= 0 || w <= 0 || eqH > h || eqW > w)
+		{
+			cout << "The input parameters error!" << endl;
+			return;
+		}
+
+		//Flip vertical
+		for(i = 0;i < eqH;i++)
+		{
+			memcpy(pty_tmpMat + i * w,Matrix + (eqH - (i + 1)) * w,w);
+		}
+		memcpy(pty_tmpMat + eqH * w,Matrix,h * w);
+		for(i = h + eqH;i < h + 2 * eqH;i++)
+		{
+			memcpy(pty_tmpMat + i * w,Matrix + (h - (i - h - eqH + 1)) * w,w);
+		}
+		//Flip horizontal
+		for(i = 0;i < h + 2 * eqH;i++)
+		{								
+			for(j = 0;j < (w + 2 * eqW);j++)
+			{
+				if(j < eqW)
+				{
+			    	Mat_out[i * (w + 2 * eqW) + j] = pty_tmpMat[i * w + (eqW - (j + 1))];
+				}
+				else if(j >= w + eqW)
+				{
+					Mat_out[i * (w + 2 * eqW) + j] = pty_tmpMat[i * w + (w - (j - w - eqW + 1))];
+				}
+				else
+				{
+					Mat_out[i * (w + 2 * eqW) + j] = pty_tmpMat[i * w + (j - eqW)];
+				}
+			}
+		}
+
+		delete pty_tmpMat;
+		pty_tmpMat = NULL;
+	}
+
+    void EdgeDete_Sobel(uchar* Matrix,
                         int h,
                         int w,
                         int thre);
-    void EdgeDete_Laplace(uchar* Mat_out,
-                          uchar* Matrix,
+	void EdgeDete_Laplace(uchar* Matrix,
                           int h,
                           int w,
-                          int thre);
-    void EdgeDete_Canny(uchar* Mat_out,
-                        uchar* Matrix,
-                        int h,
-                        int w,
-                        int filterH,
-                        int filterW,
-                        int upThre,
-                        int downThre,
-                        double sigma);
-
-    void GaussianBlur(uchar* Mat_out,
-                      uchar* Matrix,
-                      int h,
-                      int w,
-                      int filterH,
-                      int filterW,
-                      double sigma);
-    void Calconv(uchar* Mat_out,
-                 uchar* Matrix,
+					      int thre);
+    void GausBlur(uchar* Matrix,
+                  int h,
+                  int w,
+                  int filH,
+                  int filW,
+                  double sigma);
+	void CalConv(uchar* Matrix,     //因为计算卷积的时候，有可能输出负值，uchar数组中的数据会出现错误，所以这个函数要慎用。
+				 double* Wei,
                  int h,
                  int w,
-                 int filterH,
-                 int filterW,
-                 double sigma);
+                 int filH,
+                 int filW);
+
 private:
 
 public:
 	int imgH;
-	int imgW;
+	int imgW;     //图像的宽度
+	int actW;     //图像的实际宽度，是4的倍数。
 	int imgDepth;
 	int imgChannel;	
 	int imgSize;
