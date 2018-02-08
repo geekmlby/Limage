@@ -241,6 +241,160 @@ void CDIP::EdgeDete_Laplace(uchar* Matrix,
 	tmpArray = NULL;
 }
 
+void CDIP::EdgeDete_Canny(uchar* Matrix,
+                          int h,
+                          int w,
+                          int upThre,
+                          int downThre)
+{
+	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	int Gx,Gy;     //千万注意，Gx和Gy有可能是负数。
+	double gradDire;     //梯度方向
+	int tmp1,tmp2;      
+	double scale;
+	bool isEdge = false;
+
+	FlipMat(puc_flippedMat,
+			Matrix,
+			h,
+			w,
+			3,
+			3);
+	if(upThre < downThre)
+	{
+		cout << "The input data is wrong!upThre is smaller than downThre!" << endl;
+		return;
+	}
+	for(int i = 0;i < h;i++)
+	{
+		for(int j = 0;j < w;j++)
+		{
+			Gx = puc_flippedMat[i * (w + 2) + (j + 2)] - puc_flippedMat[i * (w + 2) + j];
+			Gy = puc_flippedMat[(i + 2) * (w + 2) + j] - puc_flippedMat[i * (w + 2) + j];
+			gradDire = atan2(Gy,Gx) /PI * 180;
+			gradDire = gradDire >= 0 ? gradDire : gradDire + 180;
+			if(gradDire == 0 || gradDire == 180)
+			{
+				tmp1 = puc_flippedMat[(i + 1) * (w + 2) + j + 2];
+				tmp2 = puc_flippedMat[(i + 1) * (w + 2) + j];
+				if(tmp1 > Matrix[i * w + j] || tmp2 > Matrix[i * w + j])
+				{
+					Matrix[i * w + j] = 0;
+				}
+			}
+			if(gradDire > 0 && gradDire < 45)     //非极大值抑制
+			{
+				scale = tan(gradDire / 180 * PI);
+				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 2] - puc_flippedMat[(i + 1) * (w + 2) + j + 2])) * scale 
+					   + puc_flippedMat[(i + 1) * (w + 2) + j + 2]);
+				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j] - puc_flippedMat[(i + 1) * (w + 2) + j])) * scale 
+					   + puc_flippedMat[(i + 1) * (w + 2) + j]);
+				if(tmp1 > Matrix[i * w + j] || tmp2 > Matrix[i * w + j])
+				{
+					Matrix[i * w + j] = 0;
+				}
+			}
+			if(gradDire >= 45 && gradDire < 90)
+			{
+				scale = 1 / tan(gradDire / 180 * PI);
+				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 2] - puc_flippedMat[i * (w + 2) + j + 1])) * scale 
+					   + puc_flippedMat[i * (w + 2) + j + 1]);
+				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 1] - puc_flippedMat[(i + 2) * (w + 2) + j])) * scale 
+					   + puc_flippedMat[(i + 2) * (w + 2) + j]);
+				if(tmp1 > Matrix[i * w + j] || tmp2 > Matrix[i * w + j])
+				{
+					Matrix[i * w + j] = 0;
+				}
+			}
+			if(gradDire == 90)
+			{
+				tmp1 = puc_flippedMat[i * (w + 2) + j + 1];
+				tmp2 = puc_flippedMat[(i + 2) * (w + 2) + j + 1];
+				if(tmp1 > Matrix[i * w + j] || tmp2 > Matrix[i * w + j])
+				{
+					Matrix[i * w + j] = 0;
+				}
+			}
+			if(gradDire > 90 && gradDire < 135)
+			{
+				scale = -1 / tan(gradDire / 180 * PI);
+				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 1] - puc_flippedMat[i * (w + 2) + j])) * scale 
+					   + puc_flippedMat[i * (w + 2) + j]);
+				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 2] - puc_flippedMat[(i + 2) * (w + 2) + j])) * scale 
+					   + puc_flippedMat[(i + 2) * (w + 2) + j]);
+				if(tmp1 > Matrix[i * w + j] || tmp2 > Matrix[i * w + j])
+				{
+					Matrix[i * w + j] = 0;
+				}
+			}
+			if(gradDire >= 135 && gradDire < 180)
+			{
+				scale = -tan(gradDire / 180 * PI);
+				tmp1 = (double)(((double)(puc_flippedMat[(i + 1) * (w + 2) + j] - puc_flippedMat[i * (w + 2) + j])) * scale 
+					   + puc_flippedMat[i * (w + 2) + j]);
+				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 2] - puc_flippedMat[(i + 2) * (w + 2) + j + 1])) * scale 
+					   + puc_flippedMat[(i + 2) * (w + 2) + j + 1]);
+				if(tmp1 > Matrix[i * w + j] || tmp2 > Matrix[i * w + j])
+				{
+					Matrix[i * w + j] = 0;
+				}
+			}
+		}
+	}
+
+	memset(puc_flippedMat,0,MAXHEIGHT * MAXWIDTH);
+	FlipMat(puc_flippedMat,
+			Matrix,
+			h,
+			w,
+			3,
+			3);
+	for(int i = 0;i < h;i++)
+	{
+		for(int j = 0;j < w;j++)
+		{
+			if(Matrix[i * w + j] >= upThre)
+			{
+				Matrix[i * w + j] = 255;
+			}
+			else if(Matrix[i * w + j] < upThre && Matrix[i * w + j] >= downThre)
+			{
+				isEdge = false;
+				for(int k = i;k < i + 2;k++)
+				{
+					for(int l = j;l < j + 2;l++)
+					{
+						for(int m = 0;m < 3 * 3;m++)
+						{
+							if(puc_flippedMat[k * (w + 2) + l] >= upThre)
+							{
+								isEdge = true;
+								Matrix[i * w + j] = 255;
+								break;
+							}
+						}
+						if(isEdge = true)
+						{
+							break;
+						}
+					}
+					if(isEdge = true)
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				Matrix[i * w + j] = 0;
+			}
+		}
+	}
+
+	delete puc_flippedMat;
+	puc_flippedMat = NULL;
+}
+
 void CDIP::GausBlur(uchar* Matrix,
 					int h,
 					int w,

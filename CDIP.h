@@ -123,6 +123,11 @@ public:
                           int h,
                           int w,
 					      int thre);
+	void EdgeDete_Canny(uchar* Matrix,
+                        int h,
+                        int w,
+                        int upThre,
+                        int downThre);
     void GausBlur(uchar* Matrix,
                   int h,
                   int w,
