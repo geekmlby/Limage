@@ -32,20 +32,16 @@ objfiles := $(addprefix $(PROJECT_OBJ_DIR)/,$(objnames))
 all : $(objfiles)
 	@echo "***********Start compile TARGET!***********"
 	$(CC) $(COPENCVFLAG) $(objfiles) -o $(TARGET) $(LOPENCVFLAG)
-$(PROJECT_LIB_DIR)/%.a : $(PROJECT_OBJ_DIR)/%.o
-	@echo "***********Start compile *.a files!***********"
-	ar crv $< -o $@
 $(PROJECT_OBJ_DIR)/%.o : $(PROJECT_SRC_DIR)/%.cc
 	@echo "***********Start compile objfiles!***********"
 	$(CC) -c $(CFLAGS) $(COPENCVFLAG) $< -o $@ $(LOPENCVFLAG)
 
 .PHONY : clean
 clean:
-	@echo "***********Start clean!***********"
-	rm $(PROJECT_TOP_DIR)/*.txt
+	@echo "***********Start clean!***********"	
 	rm $(objfiles)
 	rm $(TARGET)
-
+	rm $(PROJECT_TOP_DIR)/*.txt
 
 
 

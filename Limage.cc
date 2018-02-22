@@ -15,34 +15,38 @@ int main(int argc,char* argv[])
 	edgeDete.ReadImage(path);
 	edgeDete.ShowImage();
 	
-	uchar* puc_GausMat = new uchar[MAXHEIGHT * MAXWIDTH];     
-	edgeDete.GetGrayImage(puc_GausMat);
+	uchar* puc_Mat = new uchar[MAXHEIGHT * MAXWIDTH];    
+	edgeDete.GetGrayImage(puc_Mat);
 	edgeDete.ShowImage("GrayImage",
-					   puc_GausMat,
+					   puc_Mat,
 					   edgeDete.imgH,
 					   edgeDete.imgW);
-	edgeDete.GausBlur(puc_GausMat,
+	/*edgeDete.GausBlur(puc_Mat,
 					  edgeDete.imgH,
 					  edgeDete.imgW,
-					  3,
-					  3,
+					  5,
+					  5,
 					  1.5);
 	edgeDete.ShowImage("GausImage",
-					   puc_GausMat,
+					   puc_Mat,
 					   edgeDete.imgH,
-					   edgeDete.imgW);
+					   edgeDete.imgW);*/
 
-	edgeDete.EdgeDete_Canny(puc_GausMat,
+	edgeDete.EdgeDete_Canny(puc_Mat,
 							edgeDete.imgH,
 							edgeDete.imgW,
-							150,
-							120);
-	edgeDete.ShowImage("Canny",
-					   puc_GausMat,
+							0.2,
+							0.1);
+	edgeDete.ShowImage("Canny_EdgeDete",
+					   puc_Mat,
 					   edgeDete.imgH,
 					   edgeDete.imgW);
-	delete puc_GausMat;
-	puc_GausMat = NULL;
+	edgeDete.SaveImage("/home/wangli/Limage/Canny.bmp",
+					   puc_Mat,
+					   edgeDete.imgH,
+					   edgeDete.imgW);
+	delete puc_Mat;
+	puc_Mat = NULL;
 
   	return 0;
 }

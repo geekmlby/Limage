@@ -11,7 +11,7 @@ using namespace cv;
 #define CDIP_H
 
 #define PI          3.1415926
-#define PATHSIZE	100   //文件路径的最大值
+#define PATHSIZE	100          //文件路径的最大值
 #define MAXLENGTH   1000
 #define MAXHEIGHT	2000
 #define MAXWIDTH	2000
@@ -29,7 +29,7 @@ public:
     void ReadImage(char* path);
     void ShowImage();
     void ShowImage(const char* windowName,
-             	   uchar* Matrix,
+             	   uchar* Matrix,                 //为了避免和OpenCV中的Mat类重名，用Matrix。
 		           int h,
 		           int w,
 		           int depth = 8,
@@ -38,10 +38,16 @@ public:
 					 uchar* GMat,
 					 uchar* BMat);
     void GetGrayImage(uchar* GrayMat);
+	void SaveImage(const char* path,
+				   uchar* Matrix,
+				   int h,
+				   int w,
+				   int depth = 8,
+				   int channel = 1);
 
 	template<class type>
 	static void WriteTxt(const char* txtName,     //可以定义成静态函数，不用CDIP类对象，可以直接用类名调用。
-		          		 type* Mat,
+		          		 type* Matrix,
 		          		 int h,
 		          		 int w)
 	{
@@ -52,7 +58,7 @@ public:
 		{
 			for (j = 0;j < w;j++)
 			{
-				fprintf(fp,"%4d ",Mat[i * w + j]);     //因为“%d”，这个模板只适用于“int”，“char”和“uchar”。
+				fprintf(fp,"%4d ",Matrix[i * w + j]);     //因为“%d”，这个模板只适用于“int”，“char”和“uchar”。
 			}
 			fprintf(fp,"\n");
 		}
@@ -118,16 +124,16 @@ public:
     void EdgeDete_Sobel(uchar* Matrix,
                         int h,
                         int w,
-                        int thre);
+                        double thre);      //阈值范围是[0,1]，这个阈值是梯度的阈值，不是灰度的阈值。
 	void EdgeDete_Laplace(uchar* Matrix,
                           int h,
                           int w,
-					      int thre);
+					      double thre);
 	void EdgeDete_Canny(uchar* Matrix,
                         int h,
                         int w,
-                        int upThre,
-                        int downThre);
+                        double upThre,
+                        double downThre);
     void GausBlur(uchar* Matrix,
                   int h,
                   int w,
