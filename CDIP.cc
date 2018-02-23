@@ -23,7 +23,7 @@ CDIP::~CDIP()
 	cvReleaseImage(&pImg_src);
 }
 
-void CDIP::ReadImage(char* path)
+int CDIP::ReadImage(char* path)
 {	
 	pImg_src = cvLoadImage(path,-1);
 	imgH = pImg_src -> height;
@@ -42,6 +42,8 @@ void CDIP::ReadImage(char* path)
 	cout << "The imageSize of the image is: " << imgSize << endl;
 	cout << "The widthStep of the image is:" << imgWidthStep << endl;
 	cout << "*********************************************************************" << endl;
+
+	return 1;
 }
 
 void CDIP::ShowImage()
@@ -165,8 +167,14 @@ void CDIP::EdgeDete_Sobel(uchar* Matrix,
 {
 	int Gx,Gy;
 	int maxV,minV;
-	int* pic_GradMat = new int[MAXHEIGHT * MAXWIDTH];
+	int* pi_GradMat = new int[MAXHEIGHT * MAXWIDTH];
 	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+
+	if(!Matrix || thre < 0 || thre > 1)
+	{
+		cout << "The input data is wrong!" << endl;
+		return;
+	}
 	
 	maxV = 0;
 	minV = 0;
@@ -187,9 +195,9 @@ void CDIP::EdgeDete_Sobel(uchar* Matrix,
 				 puc_flippedMat[(i - 1) * (w + 2) + (j + 1)] + (-1) * puc_flippedMat[(i + 1) * (w + 2) + (j - 1)] + 
 				 (-2) * puc_flippedMat[(i + 1) * (w + 2) + j] + (-1) * puc_flippedMat[(i + 1) * (w + 2) + (j + 1)];
 
-			pic_GradMat[i * w + j] = sqrt(SQUAREV(Gx) + SQUAREV(Gy));
-			maxV = MAXV(pic_GradMat[i * w + j],maxV);
-			minV = MINV(pic_GradMat[i * w + j],minV);
+			pi_GradMat[i * w + j] = sqrt(SQUAREV(Gx) + SQUAREV(Gy));
+			maxV = MAXV(pi_GradMat[i * w + j],maxV);
+			minV = MINV(pi_GradMat[i * w + j],minV);
 		}
 	}
 	thre = (maxV - minV) * thre + minV;
@@ -197,7 +205,7 @@ void CDIP::EdgeDete_Sobel(uchar* Matrix,
 	{
 		for(int j = 0;j < w;j++)
 		{
-			if(pic_GradMat[i * w + j] > thre)
+			if(pi_GradMat[i * w + j] > thre)
 			{
 				Matrix[i * w + j] = 255;
 			}
@@ -208,9 +216,9 @@ void CDIP::EdgeDete_Sobel(uchar* Matrix,
 		}
 	}
 
-	delete pic_GradMat;
+	delete pi_GradMat;
 	delete puc_flippedMat;
-	pic_GradMat = NULL;
+	pi_GradMat = NULL;
 	puc_flippedMat = NULL;
 }
 
@@ -220,8 +228,14 @@ void CDIP::EdgeDete_Laplace(uchar* Matrix,
 						    double thre)
 {
 	int maxV,minV;
-	int* pic_GradMat = new int[MAXHEIGHT * MAXWIDTH];
+	int* pi_GradMat = new int[MAXHEIGHT * MAXWIDTH];
 	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+
+	if(!Matrix || thre < 0 || thre > 1)
+	{
+		cout << "The input data is wrong!" << endl;
+		return;
+	}
 
 	maxV = 0;
 	minV = 0;
@@ -235,11 +249,11 @@ void CDIP::EdgeDete_Laplace(uchar* Matrix,
 	{
 		for(int j = 1;j < w + 1;j++)
 		{
-			pic_GradMat[(i - 1) * w + (j - 1)] = puc_flippedMat[(i - 1) * (w + 2) + j] + puc_flippedMat[i * (w + 2) + (j - 1)] + 
+			pi_GradMat[(i - 1) * w + (j - 1)] = puc_flippedMat[(i - 1) * (w + 2) + j] + puc_flippedMat[i * (w + 2) + (j - 1)] + 
 											     puc_flippedMat[i * (w + 2) + (j + 1)] + puc_flippedMat[(i + 1) * (w + 2) + j] - 
 											     4 * puc_flippedMat[i * (w + 2) + j];
-			maxV = MAXV(pic_GradMat[(i - 1) * w + (j - 1)],maxV);
-			minV = MINV(pic_GradMat[(i - 1) * w + (j - 1)],minV);
+			maxV = MAXV(pi_GradMat[(i - 1) * w + (j - 1)],maxV);
+			minV = MINV(pi_GradMat[(i - 1) * w + (j - 1)],minV);
 		}
 	}
 	thre = (maxV - minV) * thre + minV;
@@ -247,7 +261,7 @@ void CDIP::EdgeDete_Laplace(uchar* Matrix,
 	{
 		for(int j = 0;j < w;j++)
 		{
-			if(pic_GradMat[i * w + j] > thre)
+			if(pi_GradMat[i * w + j] > thre)
 			{
 				Matrix[i * w + j] = 255;
 			}
@@ -258,9 +272,9 @@ void CDIP::EdgeDete_Laplace(uchar* Matrix,
 		}
 	}
 
-	delete pic_GradMat;
+	delete pi_GradMat;
 	delete puc_flippedMat;
-	pic_GradMat = NULL;
+	pi_GradMat = NULL;
 	puc_flippedMat = NULL;
 }
 
@@ -272,17 +286,17 @@ void CDIP::EdgeDete_Canny(uchar* Matrix,
 {
 	int Gx,Gy;            //注意：Gx和Gy有可能是负数。
 	int maxV,minV;
-	double gradDire;     //梯度方向
+	double gradDire;      //梯度方向
 	double tmp1,tmp2;      
 	double scale;
 	bool isEdge = false;
-	int* pic_GradMat = new int[MAXHEIGHT * MAXWIDTH];
+	int* pi_GradMat = new int[MAXHEIGHT * MAXWIDTH];
 	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
-	int* pic_flippedMat = new int[MAXHEIGHT * MAXWIDTH];
+	int* pi_flippedMat = new int[MAXHEIGHT * MAXWIDTH];
 
-	if(upThre < downThre)
+	if(!Matrix || upThre < downThre || downThre < 0 || upThre > 1)
 	{
-		cout << "The input data is wrong!upThre is smaller than downThre!" << endl;
+		cout << "The input data is wrong!" << endl;
 		return;
 	}
 
@@ -304,14 +318,14 @@ void CDIP::EdgeDete_Canny(uchar* Matrix,
 			Gy = puc_flippedMat[(i - 1) * (w + 2) + (j - 1)] + 2 * puc_flippedMat[(i - 1) * (w + 2) + j] + 
 				 puc_flippedMat[(i - 1) * (w + 2) + (j + 1)] + (-1) * puc_flippedMat[(i + 1) * (w + 2) + (j - 1)] + 
 				 (-2) * puc_flippedMat[(i + 1) * (w + 2) + j] + (-1) * puc_flippedMat[(i + 1) * (w + 2) + (j + 1)];
-			pic_GradMat[(i - 1) * w + (j - 1)] = sqrt(SQUAREV(Gx) + SQUAREV(Gy));
-			maxV = MAXV(pic_GradMat[(i - 1) * w + (j - 1)],maxV);
-			minV = MINV(pic_GradMat[(i - 1) * w + (j - 1)],minV);
+			pi_GradMat[(i - 1) * w + (j - 1)] = sqrt(SQUAREV(Gx) + SQUAREV(Gy));
+			maxV = MAXV(pi_GradMat[(i - 1) * w + (j - 1)],maxV);
+			minV = MINV(pi_GradMat[(i - 1) * w + (j - 1)],minV);
 		}
 	}
 
-	FlipMat(pic_flippedMat,
-			pic_GradMat,
+	FlipMat(pi_flippedMat,
+			pi_GradMat,
 			h,
 			w,
 			3,
@@ -326,57 +340,57 @@ void CDIP::EdgeDete_Canny(uchar* Matrix,
 			gradDire = gradDire >= 0 ? gradDire : gradDire + 180;
 			if(gradDire == 0 || gradDire == 180)     //非极大值抑制
 			{
-				tmp1 = puc_flippedMat[(i + 1) * (w + 2) + j + 2];
-				tmp2 = puc_flippedMat[(i + 1) * (w + 2) + j];
+				tmp1 = pi_flippedMat[(i + 1) * (w + 2) + j + 2];
+				tmp2 = pi_flippedMat[(i + 1) * (w + 2) + j];
 			}
 			if(gradDire > 0 && gradDire < 45)     
 			{
 				scale = tan(gradDire / 180 * PI);
-				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 2] - puc_flippedMat[(i + 1) * (w + 2) + j + 2])) * scale 
-					   + puc_flippedMat[(i + 1) * (w + 2) + j + 2]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j] - puc_flippedMat[(i + 1) * (w + 2) + j])) * scale 
-					   + puc_flippedMat[(i + 1) * (w + 2) + j]);
+				tmp1 = (double)(((double)(pi_flippedMat[i * (w + 2) + j + 2] - pi_flippedMat[(i + 1) * (w + 2) + j + 2])) * scale 
+					   + pi_flippedMat[(i + 1) * (w + 2) + j + 2]);
+				tmp2 = (double)(((double)(pi_flippedMat[(i + 2) * (w + 2) + j] - pi_flippedMat[(i + 1) * (w + 2) + j])) * scale 
+					   + pi_flippedMat[(i + 1) * (w + 2) + j]);
 			}
 			if(gradDire >= 45 && gradDire < 90)
 			{
 				scale = 1 / tan(gradDire / 180 * PI);
-				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 2] - puc_flippedMat[i * (w + 2) + j + 1])) * scale 
-					   + puc_flippedMat[i * (w + 2) + j + 1]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 1] - puc_flippedMat[(i + 2) * (w + 2) + j])) * scale 
-					   + puc_flippedMat[(i + 2) * (w + 2) + j]);
+				tmp1 = (double)(((double)(pi_flippedMat[i * (w + 2) + j + 2] - pi_flippedMat[i * (w + 2) + j + 1])) * scale 
+					   + pi_flippedMat[i * (w + 2) + j + 1]);
+				tmp2 = (double)(((double)(pi_flippedMat[(i + 2) * (w + 2) + j + 1] - pi_flippedMat[(i + 2) * (w + 2) + j])) * scale 
+					   + pi_flippedMat[(i + 2) * (w + 2) + j]);
 			}
 			if(gradDire == 90)
 			{
-				tmp1 = puc_flippedMat[i * (w + 2) + j + 1];
-				tmp2 = puc_flippedMat[(i + 2) * (w + 2) + j + 1];
+				tmp1 = pi_flippedMat[i * (w + 2) + j + 1];
+				tmp2 = pi_flippedMat[(i + 2) * (w + 2) + j + 1];
 			}
 			if(gradDire > 90 && gradDire < 135)
 			{
 				scale = -1 / tan(gradDire / 180 * PI);
-				tmp1 = (double)(((double)(puc_flippedMat[i * (w + 2) + j + 1] - puc_flippedMat[i * (w + 2) + j])) * scale 
-					   + puc_flippedMat[i * (w + 2) + j]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 2] - puc_flippedMat[(i + 2) * (w + 2) + j])) * scale 
-					   + puc_flippedMat[(i + 2) * (w + 2) + j]);
+				tmp1 = (double)(((double)(pi_flippedMat[i * (w + 2) + j + 1] - pi_flippedMat[i * (w + 2) + j])) * scale 
+					   + pi_flippedMat[i * (w + 2) + j]);
+				tmp2 = (double)(((double)(pi_flippedMat[(i + 2) * (w + 2) + j + 2] - pi_flippedMat[(i + 2) * (w + 2) + j])) * scale 
+					   + pi_flippedMat[(i + 2) * (w + 2) + j]);
 			}
 			if(gradDire >= 135 && gradDire < 180)
 			{
 				scale = -tan(gradDire / 180 * PI);
-				tmp1 = (double)(((double)(puc_flippedMat[(i + 1) * (w + 2) + j] - puc_flippedMat[i * (w + 2) + j])) * scale 
-					   + puc_flippedMat[i * (w + 2) + j]);
-				tmp2 = (double)(((double)(puc_flippedMat[(i + 2) * (w + 2) + j + 2] - puc_flippedMat[(i + 2) * (w + 2) + j + 1])) * scale 
-					   + puc_flippedMat[(i + 2) * (w + 2) + j + 1]);
+				tmp1 = (double)(((double)(pi_flippedMat[(i + 1) * (w + 2) + j] - pi_flippedMat[i * (w + 2) + j])) * scale 
+					   + pi_flippedMat[i * (w + 2) + j]);
+				tmp2 = (double)(((double)(pi_flippedMat[(i + 2) * (w + 2) + j + 2] - pi_flippedMat[(i + 2) * (w + 2) + j + 1])) * scale 
+					   + pi_flippedMat[(i + 2) * (w + 2) + j + 1]);
 			}
-			if(tmp1 > pic_GradMat[i * w + j] || tmp2 > pic_GradMat[i * w + j])
+			if(tmp1 > pi_GradMat[i * w + j] || tmp2 > pi_GradMat[i * w + j])
 			{
-				pic_GradMat[i * w + j] = 0;
+				pi_GradMat[i * w + j] = 0;
 			}
 		}
 	}
 
 	downThre = (maxV - minV) * downThre + minV;
 	upThre = (maxV - minV) * upThre + minV;
-	FlipMat(pic_flippedMat,
-			pic_GradMat,
+	FlipMat(pi_flippedMat,
+			pi_GradMat,
 			h,
 			w,
 			3,
@@ -385,18 +399,18 @@ void CDIP::EdgeDete_Canny(uchar* Matrix,
 	{
 		for(int j = 0;j < w;j++)
 		{
-			if(pic_GradMat[i * w + j] > upThre)
+			if(pi_GradMat[i * w + j] > upThre)
 			{
 				Matrix[i * w + j] = 255;
 			}
-			else if(pic_GradMat[i * w + j] <= upThre && pic_GradMat[i * w + j] > downThre)
+			else if(pi_GradMat[i * w + j] <= upThre && pi_GradMat[i * w + j] > downThre)
 			{
 				isEdge = false;
 				for(int k = i;k < i + 2;k++)
 				{
 					for(int l = j;l < j + 2;l++)
 					{
-							if(pic_flippedMat[k * (w + 2) + l] > upThre)
+							if(pi_flippedMat[k * (w + 2) + l] > upThre)
 							{
 								isEdge = true;
 								Matrix[i * w + j] = 255;
@@ -420,12 +434,12 @@ void CDIP::EdgeDete_Canny(uchar* Matrix,
 		}
 	}
 
-	delete pic_GradMat;
+	delete pi_GradMat;
 	delete puc_flippedMat;
-	delete pic_flippedMat;
-	pic_GradMat = NULL;
+	delete pi_flippedMat;
+	pi_GradMat = NULL;
 	puc_flippedMat = NULL;
-	pic_flippedMat = NULL;
+	pi_flippedMat = NULL;
 }
 
 void CDIP::GausBlur(uchar* Matrix,
@@ -441,6 +455,12 @@ void CDIP::GausBlur(uchar* Matrix,
 
 	eqH = filH / 2;
 	eqW = filW / 2;
+	if(!Matrix || h <= 0 || w <= 0 || eqH > h || eqW > w)
+	{
+		cout << "The input parameters error!" << endl;
+		return;
+	}
+
 	for(int x = (-1 * eqH);x < (eqH + 1);x++)
 	{
 		for(int y = (-1 * eqW);y < (eqW + 1);y++)
@@ -479,7 +499,7 @@ void CDIP::CalConv(uchar* Matrix,     //因为计算卷积的时候，有可能�
 	eqH = filH / 2;
 	eqW = filW / 2;
 
-	FlipMat(puc_flippedMat,
+	FlipMat(puc_flippedMat,           //翻转函数会判断filH，filW和h，w的大小关系，因此不用单独判断。
 			Matrix,
 			h,
 			w,
@@ -512,12 +532,233 @@ void CDIP::CalConv(uchar* Matrix,     //因为计算卷积的时候，有可能�
 	WinMat = NULL;		
 }
 
+void CDIP::Histeq(uchar* Matrix,
+				  int h,
+				  int w)
+{
+	int index = 0;
+	int *pi_HistOne = new int[256];
 
+	if (!Matrix || 0 == h || 0 == w)
+	{
+		cout << "The input data is wrong!" << endl;
+		return;
+	}
 
+	memset(pi_HistOne,
+		   0,
+		   sizeof(int) * 256);
+	for (int i = 0;i < h * w;i++)
+	{
+		index = Matrix[i];
+		pi_HistOne[index]++;
+	}
+	for (int i = 1;i < 256;i++)
+	{
+		pi_HistOne[i] = pi_HistOne[i-1] + pi_HistOne[i];
+	}
+	for (int i = 0;i < 256;i++)
+	{
+		pi_HistOne[i] = ((double)(255 * pi_HistOne[i])) / (h * w);
+	}
+	for (int i = 0;i < h * w;i++)
+	{
+		index = Matrix[i];
+		Matrix[i] = (uchar)pi_HistOne[index];
+	}
 
+	delete pi_HistOne;
+	pi_HistOne = NULL;
+}
 
+void CDIP::MeanFilter(uchar* Matrix,
+				 	  int h,
+					  int w,
+					  int filH,
+					  int filW)
+{
+	int eqH,eqW;
+	int totalH,totalW;             //补偿后的总行数，总列数。
+	int filLen;
+	uchar* puc_flippedMat = new uchar[MAXHEIGHT * MAXWIDTH];
+	double* pd_ColSum = new double[MAXHEIGHT * MAXWIDTH];
+	double* pd_InteMat = new double[MAXHEIGHT * MAXWIDTH];
 
+	eqH = filH / 2;
+	eqW = filW / 2;
+	totalH = h + (filH / 2) * 2;
+	totalW = w + (filW / 2) * 2;
+	filLen = filH * filW;
 
+	if(!Matrix || h <= 0 || w <= 0 || eqH > h || eqW > w)
+	{
+		cout << "The input parameters error!" << endl;
+		return;
+	}
+
+	//此时的puc_flippedMat的大小是翻转后，又补了一行一列，先将其全部赋值为0。因此不能使用FlipMat函数。
+	memset(puc_flippedMat,0,sizeof(uchar) * ((totalH + 1) * (totalW + 1)));
+	//下列代码的作用是把Matrix的内容复制到puc_flippedMat中	
+	for (int i = eqH + 1;i < h + eqH + 1;i++)
+	{
+		memcpy(puc_flippedMat + (i * (totalW + 1)) + eqW + 1,Matrix + (i - eqH - 1) * w,sizeof(uchar) * w);
+	}
+	//下列代码进行其他行翻转
+	for (int i = 0;i < eqH + 1;i++)
+	{
+		memcpy(puc_flippedMat + (i + 1) * (totalW + 1) + eqW + 1,
+			   puc_flippedMat + (((eqH + 1 - 1) + (eqH - i)) * (totalW + 1)) + eqW + 1,
+			   sizeof(uchar) * w);
+	}
+
+	for (int i = h + eqH + 1;i < totalH + 1;i++)
+	{
+		memcpy(puc_flippedMat + i* (totalW + 1) + eqW + 1,
+			   puc_flippedMat + (2 * (h + eqH) - i +1) * (totalW + 1) + eqW + 1,
+			   sizeof(uchar) * w);
+	}	
+	//下列代码进行列翻转
+	for (int i = 1;i < totalH + 1;i++)
+	{
+		for (int j = 1;j <= eqW + 1;j++)
+		{
+			puc_flippedMat[i * (totalW + 1) + j] = puc_flippedMat[i * (totalW + 1) + (2 * eqW) + 1 - j];
+		}
+
+		for (int j = 1 + eqW + w;j < totalW + 1;j++)
+		{
+			puc_flippedMat[i * (totalW + 1) + j] = puc_flippedMat[i * (totalW + 1) + (2 * (w + eqW) + 1) - j];
+		}
+	}
+
+	//下列代码开始进行积分图的运算,因为puc_flippedMat翻转后，又补了一行一列，所以不能使用InteImg函数。
+	//对第一行进行积分
+	for(int i = 1;i < totalW + 1;i++)
+	{  
+		pd_ColSum[i] = puc_flippedMat[totalW + 1 + i];  
+		pd_InteMat[totalW + 1 + i] = puc_flippedMat[totalW + 1 + i];  
+		if(i > 1)
+		{  
+			pd_InteMat[totalW + 1 + i] += pd_InteMat[totalW + i];  
+		}  
+	}  
+
+	for (int i = 2;i < totalH + 1;i++)
+	{  
+		int offset = i * (totalW + 1);  
+		//对第一列进行积分 
+		pd_ColSum[1] += puc_flippedMat[offset + 1];  
+		pd_InteMat[offset + 1] = pd_ColSum[1];  
+		//对第一行和第一列之外的行和列进行积分 
+		for(int j = 2;j < totalW + 1;j++)
+		{  
+			pd_ColSum[j] += puc_flippedMat[offset + j];  
+			pd_InteMat[offset + j] = pd_InteMat[offset + j - 1] + pd_ColSum[j];   
+		}  
+	} 
+
+	for (int i = 0;i < h;i++)
+	{
+		for (int j = 0;j < w;j++)
+		{
+			Matrix[i * w + j] = (uchar)((pd_InteMat[(i + 2 * eqH + 1) * (totalW + 1) + (j + 2 * eqW + 1)]
+								- pd_InteMat[(i + 2 * eqH + 1) * (totalW + 1) + j]
+								- pd_InteMat[i * (totalW + 1) + (j + 2 * eqW + 1)]
+								+ pd_InteMat[i * (totalW + 1) + j])
+								/ filLen);
+		}
+	}
+
+	delete puc_flippedMat;
+	delete pd_ColSum;
+	delete pd_InteMat;
+	puc_flippedMat = NULL;
+	pd_InteMat = NULL;
+	pd_ColSum = NULL;
+}
+
+void CDIP::InteImg(double* Mat_out,
+				   uchar* Matrix,
+				   int h,
+				   int w)
+{
+	double* pd_ColSum = new double[MAXHEIGHT * MAXWIDTH]; 
+
+	for(int i = 0;i < w;i++)
+	{  
+		pd_ColSum[i] = Matrix[i];  
+		Mat_out[i] = Matrix[i];  
+		if(i > 0)
+		{  
+			Mat_out[i] += Mat_out[i - 1];  
+		}  
+	}  
+	for (int i = 1;i < h;i++)
+	{  
+		int offset = i * w;    //偏移量
+		//对第一列进行积分 
+		pd_ColSum[0] += Matrix[offset];  
+		Mat_out[offset] = pd_ColSum[0];  
+		//对第一行和第一列之外的行和列进行积分 
+		for(int j = 1;j < w;j++)
+		{  
+			pd_ColSum[j] += Matrix[offset + j];  
+			Mat_out[offset + j] = Mat_out[offset + j - 1] + pd_ColSum[j];   
+		}  
+	}  
+
+	delete pd_ColSum;
+	pd_ColSum = NULL;
+}
+
+void CDIP::BilinearInte(uchar* Mat_out,
+						uchar* Matrix,
+						int h,
+						int w,
+						int h2,
+						int w2)
+{
+	int A = 0,B = 0,C = 0,D = 0,E = 0,F = 0,G = 0;
+	int i1 = 0,j1 = 0;
+	int i2 = 0,j2 = 0;
+	int i = 0,j = 0;
+
+	int hRadio = 0;
+	int wRadio = 0;
+
+	int iRadio = 0;
+	int jRadio = 0;
+
+	if (!Matrix || h == 0 && w == 0 || h2 ==0 || w2 == 0)
+		return;
+
+	hRadio = 64 * (h - 1) / (h2 - 1);
+	wRadio = 64 * (w - 1) / (w2 - 1);
+
+	for (i2 = 0;i2 < h2;i2++)
+	{
+		for (j2 = 0;j2 < w2;j2++)
+		{
+			i = i2 * hRadio;
+			j = j2 * wRadio;
+
+			i1 = i >> 6;
+			j1 = j >> 6;
+
+			iRadio = i - (i1 << 6);
+			jRadio = j - (j1 << 6);
+
+			A = Matrix[i1 * w + j1];
+			B = Matrix[i1 * w + j1 +1];
+			C = Matrix[(i1 + 1) * w + j1];
+			D = Matrix[(i1 + 1) * w + j1 + 1];
+			E = (B - A) * jRadio + (A << 6);
+			F = (D - C) * jRadio + (C << 6);
+			G = (F - E) * iRadio + (E << 6);
+			Mat_out[i2 * w2 + j2] = (uchar)(G >> 12);
+		}
+	}
+}
 
 
 

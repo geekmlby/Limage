@@ -26,7 +26,7 @@ public:
     CDIP();
     ~CDIP();
 
-    void ReadImage(char* path);
+    int ReadImage(char* path);                    //返回1表示读取图像成功。
     void ShowImage();
     void ShowImage(const char* windowName,
              	   uchar* Matrix,                 //为了避免和OpenCV中的Mat类重名，用Matrix。
@@ -141,11 +141,30 @@ public:
                   int filW,
                   double sigma);
 	void CalConv(uchar* Matrix,     //因为计算卷积的时候，有可能输出负值，uchar数组中的数据会出现错误，所以这个函数要慎用。
-				 double* Wei,
+				 double* Wei,       //Wei都是正值的时候，可以用这个函数。
                  int h,
                  int w,
                  int filH,
                  int filW);
+
+	void Histeq(uchar* Matrix,      //直方图均衡化
+				int h,
+				int w);
+	void MeanFilter(uchar* Matrix,  //均值滤波
+				 	int h,
+					int w,
+					int filH,
+					int filW);
+	void InteImg(double* Mat_out,   //计算图像的积分图
+				 uchar* Matrix,     
+				 int h,
+				 int w);
+	void BilinearInte(uchar* Mat_out,   //双线性插值
+					  uchar* Matrix,
+					  int h,
+					  int w,
+					  int h2,
+					  int w2);
 
 private:
 
