@@ -147,24 +147,34 @@ public:
                  int filH,
                  int filW);
 
-	void Histeq(uchar* Matrix,      //直方图均衡化
+	void Histeq(uchar* Matrix,             //直方图均衡化
 				int h,
 				int w);
-	void MeanFilter(uchar* Matrix,  //均值滤波
+	void MeanFilter(uchar* Matrix,         //均值滤波
 				 	int h,
 					int w,
 					int filH,
 					int filW);
-	void InteImg(double* Mat_out,   //计算图像的积分图
-				 uchar* Matrix,     
-				 int h,
-				 int w);
-	void BilinearInte(uchar* Mat_out,   //双线性插值
+	static void InteImg(double* Mat_out,   //计算图像的积分图
+				 		uchar* Matrix,     
+				 		int h,
+				 		int w);
+	void BilinearInte(uchar* Mat_out,      //双线性插值
 					  uchar* Matrix,
 					  int h,
 					  int w,
 					  int h2,
 					  int w2);
+	void Stretch(uchar* Mat_out,           //图像延展 
+				 uchar* Matrix,
+				 int h,
+				 int w,
+				 double ang);
+	void Rotate(uchar* Mat_out,
+				uchar* Matrix,
+				int h,
+				int w,              
+				double ang);
 
 private:
 

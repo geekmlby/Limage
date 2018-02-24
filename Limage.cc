@@ -24,16 +24,19 @@ int main(int argc,char* argv[])
 					   edgeDete.imgH,
 					   edgeDete.imgW);
 
-	edgeDete.BilinearInte(puc_Mat2,
-						  puc_Mat,
-						  edgeDete.imgH,
-						  edgeDete.imgW,
-						  edgeDete.imgH * 2,
-						  edgeDete.imgW * 2);
-	edgeDete.ShowImage("BilinearInte",
+	edgeDete.Stretch(puc_Mat2,
+					 puc_Mat,
+					 edgeDete.imgH,
+					 edgeDete.imgW,
+					 30);
+	edgeDete.ShowImage("Stretch",
 					   puc_Mat2,
-					   edgeDete.imgH * 2,
-					   edgeDete.imgW * 2);
+					   edgeDete.imgH,
+					   edgeDete.imgW);
+	edgeDete.SaveImage("/home/wangli/Limage/Stretch.bmp",
+					   puc_Mat2,
+					   edgeDete.imgH,
+					   edgeDete.imgW);
 	delete puc_Mat;
 	delete puc_Mat2;
 	puc_Mat = NULL;

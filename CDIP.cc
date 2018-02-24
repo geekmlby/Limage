@@ -536,14 +536,14 @@ void CDIP::Histeq(uchar* Matrix,
 				  int h,
 				  int w)
 {
-	int index = 0;
-	int *pi_HistOne = new int[256];
-
 	if (!Matrix || 0 == h || 0 == w)
 	{
 		cout << "The input data is wrong!" << endl;
 		return;
 	}
+
+	int index = 0;
+	int *pi_HistOne = new int[256];
 
 	memset(pi_HistOne,
 		   0,
@@ -590,7 +590,7 @@ void CDIP::MeanFilter(uchar* Matrix,
 	totalW = w + (filW / 2) * 2;
 	filLen = filH * filW;
 
-	if(!Matrix || h <= 0 || w <= 0 || eqH > h || eqW > w)
+	if(!Matrix || 0 == h || 0 == w || eqH > h || eqW > w)
 	{
 		cout << "The input parameters error!" << endl;
 		return;
@@ -682,6 +682,12 @@ void CDIP::InteImg(double* Mat_out,
 				   int h,
 				   int w)
 {
+	if (!Matrix || 0 == h || 0 == w)
+	{
+		cout << "The input data is wrong!" << endl;
+		return;
+	}
+
 	double* pd_ColSum = new double[MAXHEIGHT * MAXWIDTH]; 
 
 	for(int i = 0;i < w;i++)
@@ -718,36 +724,33 @@ void CDIP::BilinearInte(uchar* Mat_out,
 						int h2,
 						int w2)
 {
+	if (!Matrix || 0 == h || 0 == w || 0 == h2 || 0 == w2)
+	{
+		cout << "The input data is wrong!" << endl;
+		return;
+	}
+
 	int A = 0,B = 0,C = 0,D = 0,E = 0,F = 0,G = 0;
 	int i1 = 0,j1 = 0;
 	int i2 = 0,j2 = 0;
 	int i = 0,j = 0;
-
 	int hRadio = 0;
 	int wRadio = 0;
-
 	int iRadio = 0;
 	int jRadio = 0;
 
-	if (!Matrix || h == 0 && w == 0 || h2 ==0 || w2 == 0)
-		return;
-
 	hRadio = 64 * (h - 1) / (h2 - 1);
 	wRadio = 64 * (w - 1) / (w2 - 1);
-
 	for (i2 = 0;i2 < h2;i2++)
 	{
 		for (j2 = 0;j2 < w2;j2++)
 		{
 			i = i2 * hRadio;
 			j = j2 * wRadio;
-
 			i1 = i >> 6;
 			j1 = j >> 6;
-
 			iRadio = i - (i1 << 6);
 			jRadio = j - (j1 << 6);
-
 			A = Matrix[i1 * w + j1];
 			B = Matrix[i1 * w + j1 +1];
 			C = Matrix[(i1 + 1) * w + j1];
@@ -760,9 +763,161 @@ void CDIP::BilinearInte(uchar* Mat_out,
 	}
 }
 
+void CDIP::Stretch(uchar* Mat_out,           //图像延展 
+				   uchar* Matrix,
+				   int h,
+				   int w,
+				   double ang)
+{
+	if (!Matrix || 0 == h || 0 == w || ang > 90.0)
+	{
+		cout << "The input data is wrong!" << endl;
+		return;
+	}
 
+	int i1 = 0,j1 = 0,i2 = 0,j2 = 0,i = 0,j = 0;
+	int A = 0,B = 0,C = 0;
+	int halfH = 0;
+	int wRadio = 0;
+	int tanV = round(tan(ang / 180 * PI) * 1024);
 
+	memset(Mat_out,0,sizeof(uchar) * (h * w));
+	if (h % 2 == 0)
+	{
+		halfH = (h - 1) / 2;
+	}
+	else
+	{
+		halfH = h / 2;
+	}
+	//下列代码，采用了插值法，效果已实现。
+	for (i2 = 0;i2 < h;i2++)
+	{
+		for (j2 = 0;j2 < w;j2++)
+		{
+			i1 = i2;
+			if (i2 <= halfH)
+			{
+				j = (j2 << 10) - (halfH - i2) * tanV;
+			} 
+			if(i2 > halfH)
+			{
+				j = (j2 << 10) + (i2 - halfH) * tanV;
+			}
+			j1 = j >> 10;
+			if (j1 >= 0 && j1 < w)
+			{
+				wRadio = j - (j1 << 10);
+				A = Matrix[i1 * w + j1];
+				B = Matrix[i1 * w + j1 + 1];
+				C = (B - A) * wRadio + (A << 10);
+				Mat_out[i2 * w + j2] = (uchar)A;
+			}
+			else if (j1 < 0)
+			{
+				Mat_out[i2 * w + j2] = Matrix[i1 * w];
+			} 
+			else
+			{
+				Mat_out[i2 * w + j2] = Matrix[(i1 + 1) * w - 1];
+			}
+		}
+	}
+}
 
+void CDIP::Rotate(uchar* Mat_out,
+				  uchar* Matrix,
+				  int h,
+				  int w,              
+				  double ang)
+{
+	if (!Matrix || 0 == h || 0 == w || ang > 90.0 || ang < -90.0)
+	{
+		cout << "The input data is wrong!" << endl;
+		return;
+	}
+
+	int i1 = 0,j1 = 0,i2 = 0,j2 = 0,i = 0,j = 0,k = 0;
+	int x1 = 0,y1 = 0,x2 = 0,y2 = 0;
+	int sinV = 0,cosV = 0;
+	int hRadio = 0,wRadio = 0;             //定义这两个int型变量，主要是为了插值运算时用。
+	int halfH = 0,halfW = 0;
+	int A = 0,B = 0,C = 0,D = 0,E = 0,F = 0,G = 0;
+	int count = 0;
+	int j2EqStart = 0,j2EqEnd = 0;
+	int Edge[MAXWIDTH] = {0};              //用这个数组来记录pucY2的边界值。
+
+	if (ang >= 0)
+	{
+		sinV = round(sin(ang / 180 * PI) * 1024);
+		cosV = round(cos(ang / 180 * PI) * 1024);
+	} 
+	else
+	{
+		sinV = -round(sin(-ang / 180 * PI) * 1024);
+		cosV = round(cos(ang / 180 * PI) * 1024);
+	}
+	//下列代码求直角坐标的原点。
+	if (h % 2 == 0)
+	{
+		halfH = (h - 1) / 2;
+	}
+	else
+	{
+		halfH = h / 2;
+	}
+	if (w % 2 == 0)
+	{
+		halfW = (w - 1) / 2;
+	} 
+	else
+	{
+		halfW = w / 2;
+	}
+
+	memset(Mat_out,0,sizeof(uchar) * (h * w));
+	for(i2 = 0; i2 < h; i2++)
+	{
+		for(j2 = 0; j2 < w; j2++)
+		{
+			y2 = halfH - i2;
+			x2 = j2 - halfW;
+			x1 = x2 * cosV - y2 * sinV;
+			y1 = x2 * sinV + y2 * cosV;
+			//下列代码用插值进行图像翻转
+			i = (halfH << 10) - y1;
+			j = x1 + (halfW << 10);			
+			i1 = i >> 10;
+			j1 = j >> 10;
+			hRadio = i - (i1 << 10);
+			wRadio = j - (j1 << 10);
+			A = Matrix[i1 * w + j1];
+			B = Matrix[i1 * w + j1 + 1];
+			C = Matrix[(i1 + 1) * w + j1];
+			D = Matrix[(i1 + 1) * w + j1 + 1];
+			E = (B - A) * wRadio + (A << 10);
+			F = (D - C) * wRadio + (C << 10);
+			G = (F - E) * hRadio + (E << 10);
+			if (i1 >= 0 && i1 < h - 1 && j1 >= 0 && j1 < w - 1)
+			{
+				Mat_out[i2 * w + j2] = (uchar)(G >> 20);
+				Edge[count] = j2;
+				count++;
+			}
+		}
+		j2EqStart = Edge[0];
+		j2EqEnd = Edge[count - 1];	
+		for (k = 0;k< j2EqStart;k++)
+		{
+			Mat_out[i2 * w + k] = Mat_out[i2 * w + j2EqStart];    // 左角 赋值
+		} 
+		for (k = j2EqEnd + 1;k < w;k++)
+		{
+			Mat_out[i2 * w + k] = Mat_out[i2 * w + j2EqEnd];     // 右角 赋值
+		}
+		count=0;
+	}
+}
 
 
 
